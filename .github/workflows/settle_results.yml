@@ -1,0 +1,29 @@
+name: Settle results
+
+# Skeleton — fully wired in Phase 9. Cron schedule intentionally disabled
+# until Phase 7 ships the settlement script.
+
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "0 14 * * *"  # next morning, 10am ET (EDT) / 9am ET (EST)
+
+permissions:
+  contents: write
+
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Phase 1 placeholder
+        run: |
+          echo "MLB-Strikeouts is at Phase 1 scaffold."
+          echo "Settlement script ships in Phase 7 and this workflow is enabled in Phase 9."
+          exit 0

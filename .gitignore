@@ -1,0 +1,46 @@
+# Next.js / Node
+node_modules/
+.next/
+out/
+.env
+.env.local
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Backend caches — regeneratable, do NOT commit.
+backend/data/raw/
+# Use `processed/*` (not `processed/`) so `!file` exceptions below can
+# unignore specific files. With a bare `processed/` rule git silently
+# overrides any `!file` exceptions inside — burned us on HR repo's first deploy.
+backend/data/processed/*
+# EXCEPT — files explicitly committed:
+# park_k_factors.parquet: precomputed once (~20 min of Statcast pulls), small.
+!backend/data/processed/park_k_factors.parquet
+# nb_dispersion.json: locked value from scripts/fit_nb_dispersion.py.
+!backend/data/processed/nb_dispersion.json
+# tracker.json: generated nightly, read at build time for big-number cards.
+!backend/data/processed/tracker.json
+
+# DO commit backend/data/odds/ — those snapshots ARE our dataset.
+# (No ignore rule for backend/data/odds.)
+
+# Research artifacts (kept local; chunk caches are GBs)
+backend/data/research/
+
+# Run logs / scratch
+backend/*.log
+*.log
+
+# backend/picks.json is a workflow intermediate — the cron writes it then
+# copies to repo-root /picks.json (which IS tracked).
+backend/picks.json
+backend/secondary_picks.json
+backend/shadow_picks.json

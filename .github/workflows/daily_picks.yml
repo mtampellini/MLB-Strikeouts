@@ -1,0 +1,35 @@
+name: Daily picks
+
+# Skeleton — fully wired in Phase 9. Cron schedule intentionally disabled
+# until Phase 7 ships the pipeline. workflow_dispatch only for now.
+
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "13 15-23 * * *"  # 11:13am-7:13pm ET (EDT), matches HR repo pattern
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-picks
+  cancel-in-progress: false
+
+jobs:
+  pick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Phase 1 placeholder
+        run: |
+          echo "MLB-Strikeouts is at Phase 1 scaffold."
+          echo "Daily pick pipeline ships in Phase 7 and this workflow is enabled in Phase 9."
+          exit 0
