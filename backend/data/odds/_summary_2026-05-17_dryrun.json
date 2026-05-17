@@ -1,0 +1,63 @@
+{
+  "as_of_date": "2026-05-17",
+  "generated_at": "2026-05-17T21:10:59Z",
+  "dry_run": true,
+  "events": [
+    {
+      "event_id": "116182ae8e8405948f5510df38eec4e8",
+      "commence_time": "2026-05-17T18:11:00Z",
+      "home_team": "Chicago White Sox",
+      "away_team": "Chicago Cubs",
+      "pitcher_props": [],
+      "snapshot_path": null
+    },
+    {
+      "event_id": "0fb188572539c3bf9558877136a1c260",
+      "commence_time": "2026-05-17T18:11:00Z",
+      "home_team": "Minnesota Twins",
+      "away_team": "Milwaukee Brewers",
+      "pitcher_props": [],
+      "snapshot_path": null
+    },
+    {
+      "event_id": "202f16f2a36544c76cedfaacc4e45ada",
+      "commence_time": "2026-05-17T18:16:00Z",
+      "home_team": "St. Louis Cardinals",
+      "away_team": "Kansas City Royals",
+      "pitcher_props": [],
+      "snapshot_path": null
+    },
+    {
+      "event_id": "b51f77ee601ba774b0fc72ab78459a22",
+      "commence_time": "2026-05-17T20:06:00Z",
+      "home_team": "Athletics",
+      "away_team": "San Francisco Giants",
+      "pitcher_props": [],
+      "snapshot_path": null
+    },
+    {
+      "event_id": "dd1591797593585fc5c6ed59ebb7a738",
+      "commence_time": "2026-05-17T20:08:00Z",
+      "home_team": "Los Angeles Angels",
+      "away_team": "Los Angeles Dodgers",
+      "pitcher_props": [],
+      "snapshot_path": null
+    },
+    {
+      "event_id": "8732923778f83df576e551800c5f68d9",
+      "commence_time": "2026-05-17T20:56:00Z",
+      "home_team": "Colorado Rockies",
+      "away_team": "Arizona Diamondbacks",
+      "pitcher_props": [],
+      "snapshot_path": null
+    },
+    {
+      "event_id": "4a7ed5c0f59bf539dffd13712f0d22e3",
+      "commence_time": "2026-05-17T23:21:00Z",
+      "home_team": "Seattle Mariners",
+      "away_team": "San Diego Padres",
+      "pitcher_props": [],
+      "snapshot_path": null
+    }
+  ]
+}

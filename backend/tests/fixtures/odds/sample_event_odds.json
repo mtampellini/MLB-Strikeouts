@@ -1,0 +1,23 @@
+{
+  "id": "evt-doc-1",
+  "commence_time": "2026-05-17T23:05:00Z",
+  "home_team": "Tampa Bay Rays",
+  "away_team": "Miami Marlins",
+  "bookmakers": [
+    {
+      "key": "fanduel",
+      "title": "FanDuel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "outcomes": [
+            {"name": "Over",  "description": "Drew Rasmussen", "point": 4.5, "price": -180},
+            {"name": "Under", "description": "Drew Rasmussen", "point": 4.5, "price": 145},
+            {"name": "Over",  "description": "Drew Rasmussen", "point": 5.5, "price": 120},
+            {"name": "Under", "description": "Drew Rasmussen", "point": 5.5, "price": -150}
+          ]
+        }
+      ]
+    }
+  ]
+}

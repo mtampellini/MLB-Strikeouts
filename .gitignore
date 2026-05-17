@@ -16,7 +16,15 @@ venv/
 .ruff_cache/
 
 # Backend caches — regeneratable, do NOT commit.
-backend/data/raw/
+# Use `raw/*` (not `raw/`) so the `!file` exceptions below actually apply —
+# a bare `raw/` rule git silently overrides any `!file` exception inside.
+# Same trap that bit HR repo's first deploy.
+backend/data/raw/*
+# EXCEPT — player_id_cache.json (committed per backend/README.md, Phase 2 spec):
+# small, expensive to rebuild via pybaseball, deterministic mappings.
+!backend/data/raw/player_id_cache.json
+# AND — cross-source disagreement log: tiny JSONL, useful diagnostic history.
+!backend/data/raw/probables_disagreements.jsonl
 # Use `processed/*` (not `processed/`) so `!file` exceptions below can
 # unignore specific files. With a bare `processed/` rule git silently
 # overrides any `!file` exceptions inside — burned us on HR repo's first deploy.
