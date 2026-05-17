@@ -11,6 +11,7 @@ from src.data.as_of_context import LeakageError
 from src.data.statcast_client import (
     ESSENTIAL_COLUMNS,
     StatcastClient,
+    _dedup_statcast,
     _normalize_dataframe,
 )
 
@@ -57,6 +58,32 @@ def test_normalize_coerces_game_date_to_iso_string():
     )
     df = _normalize_dataframe(raw)
     assert df.iloc[0]["game_date"] == "2024-07-15"
+
+
+def test_dedup_statcast_uses_at_bat_and_pitch_number():
+    """pybaseball sometimes returns the same pitch twice in a single response.
+    The dedup keys uniquely identify a single pitch within a game.
+    """
+    raw = pd.DataFrame(
+        [
+            {"game_pk": 1, "at_bat_number": 5, "pitch_number": 1, "release_speed": 95.0},
+            {"game_pk": 1, "at_bat_number": 5, "pitch_number": 1, "release_speed": 95.0},  # dup
+            {"game_pk": 1, "at_bat_number": 5, "pitch_number": 2, "release_speed": 96.0},
+        ]
+    )
+    out = _dedup_statcast(raw)
+    assert len(out) == 2
+
+
+def test_dedup_statcast_distinguishes_pitches_in_different_at_bats():
+    raw = pd.DataFrame(
+        [
+            {"game_pk": 1, "at_bat_number": 5, "pitch_number": 1},
+            {"game_pk": 1, "at_bat_number": 6, "pitch_number": 1},  # different at-bat
+        ]
+    )
+    out = _dedup_statcast(raw)
+    assert len(out) == 2
 
 
 # -------- get_game_pitches: cache behavior ----------------------------------
@@ -161,6 +188,62 @@ def test_get_pitcher_pitches_incremental_refresh_pulls_only_new_days(tmp_path):
     # First call: 2024-07-03..2024-07-10. Second call: 2024-07-11..2024-07-15.
     assert len(calls) == 2
     assert calls[1] == (date(2024, 7, 11), date(2024, 7, 15))
+
+
+def test_get_pitcher_pitches_backfills_when_window_extends_earlier(tmp_path):
+    """A later query for an EARLIER window must backfill, not return stale.
+
+    This was the Phase 2c bug: cache only tracked fetched_through, so a query
+    for prior_year (cutoff far in the past) read the existing cache, sliced
+    to an empty result, and returned [] for an established pitcher.
+    """
+    calls: list[tuple[date, date]] = []
+
+    def fake_fetch(start, end, pitcher_id):
+        calls.append((start, end))
+        return _sample_df(
+            [_pitch_row(game_pk=int(d.strftime("%Y%m%d")), game_date=d.isoformat(), pitcher=pitcher_id)
+             for d in pd.date_range(start, end).date]
+        )
+
+    client = StatcastClient(fetch_pitcher=fake_fetch, cache_dir=tmp_path)
+    # Warm cache with a recent 7-day pull.
+    client.get_pitcher_pitches(605400, cutoff_date=date(2024, 7, 10), days_back=7)
+    assert len(calls) == 1
+    # Ask for a 30-day window ending 2024-07-10. Earlier days must be pulled.
+    df = client.get_pitcher_pitches(605400, cutoff_date=date(2024, 7, 10), days_back=30)
+    assert len(calls) == 2
+    backfill_range = calls[1]
+    # Must pull [2024-06-10 .. 2024-07-03 - 1] i.e. days strictly earlier than
+    # the existing fetched_from = 2024-07-03.
+    assert backfill_range[0] == date(2024, 6, 10)
+    assert backfill_range[1] == date(2024, 7, 2)
+    # And the returned slice must include those earlier dates.
+    assert df["game_date"].min() == "2024-06-10"
+
+
+def test_get_pitcher_pitches_prior_year_triggers_backfill(tmp_path):
+    """The specific Phase 2c failure: cache populated with current-year data,
+    later query for prior-year window with an earlier cutoff."""
+    calls: list[tuple[date, date]] = []
+
+    def fake_fetch(start, end, pitcher_id):
+        calls.append((start, end))
+        return _sample_df(
+            [_pitch_row(game_pk=int(d.strftime("%Y%m%d")), game_date=d.isoformat(), pitcher=pitcher_id)
+             for d in pd.date_range(start, end).date]
+        )
+
+    client = StatcastClient(fetch_pitcher=fake_fetch, cache_dir=tmp_path)
+    client.get_pitcher_pitches(605400, cutoff_date=date(2024, 7, 10), days_back=7)
+    df = client.get_pitcher_pitches(
+        605400, cutoff_date=date(2023, 10, 31), days_back=30
+    )
+    # Backfill pull should have happened
+    assert len(calls) == 2
+    # Slice covers the prior-year window
+    assert df["game_date"].min() >= "2023-10-01"
+    assert df["game_date"].max() <= "2023-10-31"
 
 
 def test_get_pitcher_pitches_filters_to_cutoff(tmp_path):

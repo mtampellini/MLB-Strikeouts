@@ -93,6 +93,27 @@ def _default_fetch_game(game_date: date, game_pk: int) -> pd.DataFrame:
     return df[df["game_pk"] == game_pk].reset_index(drop=True)
 
 
+def _dedup_statcast(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop duplicate pitches.
+
+    pybaseball.statcast_pitcher / statcast_batter occasionally returns the
+    same pitch twice in a single response (a Savant-side join glitch). Without
+    dedup, a 30-day pull can come back with ~2x the real pitch count. We key
+    on ``(game_pk, at_bat_number, pitch_number)`` which uniquely identifies a
+    single pitch within a game; falling back to ``(game_pk, pitcher, batter,
+    pitch_number)`` if at_bat_number is absent.
+    """
+    if df is None or len(df) == 0:
+        return df
+    for key in (
+        ("game_pk", "at_bat_number", "pitch_number"),
+        ("game_pk", "pitcher", "batter", "pitch_number"),
+    ):
+        if all(c in df.columns for c in key):
+            return df.drop_duplicates(subset=list(key)).reset_index(drop=True)
+    return df
+
+
 def _normalize_dataframe(df: Any) -> pd.DataFrame:
     """Coerce pybaseball output to a stable contract."""
     if df is None:
@@ -201,25 +222,37 @@ class StatcastClient(AsOfClient):
         start = end - timedelta(days=days_back)
 
         path = self._player_cache_path(kind, player_id)
-        fetched_through = self._read_fetched_through(path)
+        fetched_from, fetched_through = self._read_cached_window(path)
         cached = pd.read_parquet(path) if path.exists() else None
 
-        if cached is not None and fetched_through is not None:
-            if fetched_through >= end:
-                # Cache already covers the requested window. Use as-is.
-                df = cached
-            else:
-                next_start = fetched_through + timedelta(days=1)
-                fresh = fetch_fn(next_start, end, player_id)
-                df = pd.concat([cached, fresh], ignore_index=True)
-                dedup_keys = ["game_pk", "pitcher", "batter"]
-                if "pitch_number" in df.columns:
-                    dedup_keys.append("pitch_number")
-                df = df.drop_duplicates(subset=dedup_keys).reset_index(drop=True)
-                self._persist(df, path, fetched_through=end)
+        if (
+            cached is None
+            or cached.empty
+            or fetched_from is None
+            or fetched_through is None
+        ):
+            # Cold cache (or stale sidecar) — pull the full requested window.
+            df = _dedup_statcast(fetch_fn(start, end, player_id))
+            self._persist(df, path, fetched_from=start, fetched_through=end)
         else:
-            df = fetch_fn(start, end, player_id)
-            self._persist(df, path, fetched_through=end)
+            # Backfill earlier OR newer rows if the requested window extends
+            # beyond what's cached. Cache always grows in both directions.
+            pulls: list[tuple[date, date]] = []
+            if start < fetched_from:
+                pulls.append((start, fetched_from - timedelta(days=1)))
+            if end > fetched_through:
+                pulls.append((fetched_through + timedelta(days=1), end))
+
+            if pulls:
+                pieces = [cached]
+                for piece_start, piece_end in pulls:
+                    pieces.append(fetch_fn(piece_start, piece_end, player_id))
+                df = _dedup_statcast(pd.concat(pieces, ignore_index=True))
+                new_from = min(fetched_from, start)
+                new_through = max(fetched_through, end)
+                self._persist(df, path, fetched_from=new_from, fetched_through=new_through)
+            else:
+                df = cached
 
         # Slice to the requested window and never return rows past cutoff.
         df = df[
@@ -229,25 +262,44 @@ class StatcastClient(AsOfClient):
         self._asof_post(_df_payload(df), cutoff_date)
         return df
 
-    def _read_fetched_through(self, parquet_path: Path) -> date | None:
+    def _read_cached_window(self, parquet_path: Path) -> tuple[date | None, date | None]:
+        """Return (fetched_from, fetched_through) for the cache, or (None, None).
+
+        Backward-compatible with sidecars that only have ``fetched_through``:
+        a missing ``fetched_from`` is treated as "unknown lower bound" and
+        the caller refetches the full requested window.
+        """
         meta_path = parquet_path.with_suffix(".meta.json")
         if not meta_path.exists():
-            return None
+            return None, None
         try:
             blob = json.loads(meta_path.read_text(encoding="utf-8"))
-            return date.fromisoformat(blob["fetched_through"])
-        except (OSError, KeyError, ValueError, json.JSONDecodeError):
-            return None
+        except (OSError, json.JSONDecodeError):
+            return None, None
+        ft = blob.get("fetched_through")
+        ff = blob.get("fetched_from")
+        try:
+            ft_d = date.fromisoformat(ft) if ft else None
+            ff_d = date.fromisoformat(ff) if ff else None
+        except ValueError:
+            return None, None
+        return ff_d, ft_d
 
-    def _write_fetched_through(
-        self, parquet_path: Path, fetched_through: date
+    def _write_meta(
+        self,
+        parquet_path: Path,
+        *,
+        fetched_from: date | None,
+        fetched_through: date | None,
     ) -> None:
         meta_path = parquet_path.with_suffix(".meta.json")
+        blob: dict[str, str] = {}
+        if fetched_from is not None:
+            blob["fetched_from"] = fetched_from.isoformat()
+        if fetched_through is not None:
+            blob["fetched_through"] = fetched_through.isoformat()
         try:
-            meta_path.write_text(
-                json.dumps({"fetched_through": fetched_through.isoformat()}),
-                encoding="utf-8",
-            )
+            meta_path.write_text(json.dumps(blob), encoding="utf-8")
         except OSError as exc:
             logger.warning(
                 "StatcastClient: failed to write meta sidecar %s: %s",
@@ -272,6 +324,7 @@ class StatcastClient(AsOfClient):
         df: pd.DataFrame,
         path: Path,
         *,
+        fetched_from: date | None = None,
         fetched_through: date | None = None,
     ) -> None:
         if df is None or df.empty:
@@ -281,8 +334,10 @@ class StatcastClient(AsOfClient):
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             df.to_parquet(path, index=False)
-            if fetched_through is not None:
-                self._write_fetched_through(path, fetched_through)
+            if fetched_from is not None or fetched_through is not None:
+                self._write_meta(
+                    path, fetched_from=fetched_from, fetched_through=fetched_through
+                )
         except OSError as exc:
             logger.warning(
                 "StatcastClient: failed to persist cache at %s: %s", path, exc
