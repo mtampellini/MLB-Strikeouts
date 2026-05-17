@@ -1,0 +1,133 @@
+{
+  "as_of_date": "2026-05-17",
+  "game_pk": 822982,
+  "context": {
+    "venue_id": 12,
+    "venue_name": "Tropicana Field",
+    "home_team": "TB",
+    "away_team": "MIA",
+    "game_datetime": "2026-05-17T16:15:00Z"
+  },
+  "weather": {
+    "condition": "Dome",
+    "temp_f": 72.0,
+    "wind_speed_mph": 0.0,
+    "wind_direction": null
+  },
+  "home_plate_umpire": {
+    "id": 594151,
+    "name": "Ramon De Jesus"
+  },
+  "home_lineup": [
+    {
+      "spot": 1,
+      "name": "Chandler Simpson",
+      "bats": "L",
+      "pos": "LF"
+    },
+    {
+      "spot": 2,
+      "name": "Junior Caminero",
+      "bats": "R",
+      "pos": "3B"
+    },
+    {
+      "spot": 3,
+      "name": "Jonathan Aranda",
+      "bats": "L",
+      "pos": "1B"
+    },
+    {
+      "spot": 4,
+      "name": "Yandy Díaz",
+      "bats": "R",
+      "pos": "DH"
+    },
+    {
+      "spot": 5,
+      "name": "Richie Palacios",
+      "bats": "L",
+      "pos": "2B"
+    },
+    {
+      "spot": 6,
+      "name": "Jonny DeLuca",
+      "bats": "R",
+      "pos": "RF"
+    },
+    {
+      "spot": 7,
+      "name": "Cedric Mullins",
+      "bats": "L",
+      "pos": "CF"
+    },
+    {
+      "spot": 8,
+      "name": "Nick Fortes",
+      "bats": "R",
+      "pos": "C"
+    },
+    {
+      "spot": 9,
+      "name": "Taylor Walls",
+      "bats": "S",
+      "pos": "SS"
+    }
+  ],
+  "away_lineup": [
+    {
+      "spot": 1,
+      "name": "Xavier Edwards",
+      "bats": "S",
+      "pos": "2B"
+    },
+    {
+      "spot": 2,
+      "name": "Liam Hicks",
+      "bats": "L",
+      "pos": "1B"
+    },
+    {
+      "spot": 3,
+      "name": "Otto Lopez",
+      "bats": "R",
+      "pos": "SS"
+    },
+    {
+      "spot": 4,
+      "name": "Kyle Stowers",
+      "bats": "L",
+      "pos": "RF"
+    },
+    {
+      "spot": 5,
+      "name": "Connor Norby",
+      "bats": "R",
+      "pos": "DH"
+    },
+    {
+      "spot": 6,
+      "name": "Jakob Marsee",
+      "bats": "L",
+      "pos": "CF"
+    },
+    {
+      "spot": 7,
+      "name": "Leo Jiménez",
+      "bats": "R",
+      "pos": "3B"
+    },
+    {
+      "spot": 8,
+      "name": "Heriberto Hernández",
+      "bats": "R",
+      "pos": "LF"
+    },
+    {
+      "spot": 9,
+      "name": "Joe Mack",
+      "bats": "L",
+      "pos": "C"
+    }
+  ]
+}

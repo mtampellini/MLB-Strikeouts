@@ -56,11 +56,22 @@ class AsOfClient(abc.ABC):
         """Subclass implementation. Must return its data without leakage."""
 
     def fetch(self, *, cutoff_date: date | None, **kwargs: Any) -> Any:
+        self._asof_pre(cutoff_date)
+        result = self._fetch(cutoff_date, **kwargs)
+        self._asof_post(result, cutoff_date)
+        return result
+
+    # ---- Named-method clients reuse the same guard. -----------------------
+    # StatsAPIClient and StatcastClient have several distinct endpoints
+    # (lineups, weather, umpire, etc.) and override _fetch with a stub. Each
+    # named method calls _asof_pre / fetch logic / _asof_post directly.
+
+    def _asof_pre(self, cutoff_date: date | None) -> None:
         if cutoff_date is None:
             warnings.warn(
-                f"{type(self).__name__}: LIVE MODE (cutoff_date=None) — "
+                f"{type(self).__name__}: LIVE MODE (cutoff_date=None) - "
                 "leakage check disabled. Do not use for backtests or training.",
-                stacklevel=2,
+                stacklevel=3,
             )
             logger.warning(
                 "%s: LIVE MODE (cutoff_date=None)", type(self).__name__
@@ -68,12 +79,9 @@ class AsOfClient(abc.ABC):
         else:
             self._validate_cutoff(cutoff_date)
 
-        result = self._fetch(cutoff_date, **kwargs)
-
+    def _asof_post(self, result: Any, cutoff_date: date | None) -> None:
         if cutoff_date is not None and runtime_check_enabled():
             self._check_no_leakage(result, cutoff_date)
-
-        return result
 
     def _validate_cutoff(self, cutoff_date: date) -> None:
         if not isinstance(cutoff_date, date):

@@ -31,7 +31,7 @@ same projections later without refactoring. A scaffold test enforces that
 |-------|------------|--------|
 | 1 | Repo scaffolding | ✅ |
 | 2a | Data layer A: AsOfContext base, ProbablesClient (FG + StatsAPI), OddsAPIClient, opener_detection | ✅ |
-| 2b | Data layer B: StatcastClient, full StatsAPIClient (lineups, weather, umpire, catcher) | ⬜ |
+| 2b | Data layer B: StatsAPIClient (lineups, weather, umpire, game context), StatcastClient (per-game + per-player caches) | ✅ |
 | 3 | Feature engineering (E[BF] additive set + P(K\|PA) multiplicative set) + hard filters | ⬜ |
 | 4 | NB dispersion fit (`scripts/fit_nb_dispersion.py`) — locked once fit | ⬜ |
 | 5 | Pricing engine: NB CDF → P(K ≥ line), devig, edge, EV, three-tier selection | ⬜ |
