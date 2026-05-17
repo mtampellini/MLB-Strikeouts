@@ -11,6 +11,10 @@ import pytest
 from src.data.odds_client import (
     ALLOWED_BOOKS,
     BudgetExhaustedError,
+    CrossRepoKeyBleedError,
+    DEFAULT_BUDGET_FLOOR,
+    ENV_KEY_HR,
+    ENV_KEY_STRIKEOUTS,
     EventOdds,
     MissingSnapshotError,
     OddsAPIClient,
@@ -221,7 +225,7 @@ def test_dry_run_skips_event_odds_calls(tmp_path):
         raise AssertionError("event-odds endpoint should not be hit on dry run")
 
     client = OddsAPIClient(
-        api_key=None,
+        api_key="x",
         fetch_events=lambda key: (_stub_events_payload(), _stub_headers()),
         fetch_event_odds=bomb,
         snapshot_dir=tmp_path,
@@ -273,6 +277,97 @@ def test_historical_missing_snapshot_raises(tmp_path):
     )
     with pytest.raises(MissingSnapshotError):
         client.fetch(cutoff_date=date(2024, 7, 15))
+
+
+# -------- API key resolution + cross-repo bleed guard -----------------------
+
+
+def test_missing_strikeouts_key_raises(monkeypatch):
+    """If ODDS_API_KEY_STRIKEOUTS isn't set, __init__ refuses to build a client.
+
+    Phase 2 spec: cross-repo key bleed must not happen silently.
+    """
+    monkeypatch.delenv(ENV_KEY_STRIKEOUTS, raising=False)
+    monkeypatch.delenv(ENV_KEY_HR, raising=False)
+    with pytest.raises(CrossRepoKeyBleedError, match=ENV_KEY_STRIKEOUTS):
+        OddsAPIClient()
+
+
+def test_strikeouts_key_equals_hr_key_raises(monkeypatch):
+    monkeypatch.setenv(ENV_KEY_STRIKEOUTS, "shared-value")
+    monkeypatch.setenv(ENV_KEY_HR, "shared-value")
+    with pytest.raises(CrossRepoKeyBleedError, match="equals"):
+        OddsAPIClient()
+
+
+def test_strikeouts_key_distinct_from_hr_passes(monkeypatch):
+    monkeypatch.setenv(ENV_KEY_STRIKEOUTS, "strikeouts-key")
+    monkeypatch.setenv(ENV_KEY_HR, "hr-key")
+    client = OddsAPIClient()  # no raise
+    assert client._api_key == "strikeouts-key"
+
+
+def test_explicit_api_key_bypasses_env_check(monkeypatch):
+    """Explicit api_key= injection always wins, even with no env set."""
+    monkeypatch.delenv(ENV_KEY_STRIKEOUTS, raising=False)
+    monkeypatch.delenv(ENV_KEY_HR, raising=False)
+    client = OddsAPIClient(api_key="explicit-test-key")
+    assert client._api_key == "explicit-test-key"
+
+
+# -------- Budget floor + budget_status --------------------------------------
+
+
+def test_default_budget_floor_is_100():
+    assert DEFAULT_BUDGET_FLOOR == 100
+
+
+def test_default_budget_floor_refuses_at_99(sample_event_odds_payload, tmp_path, monkeypatch):
+    """At default floor (100), a remaining count of 99 trips refusal."""
+    client = OddsAPIClient(
+        api_key="x",
+        fetch_events=lambda key: (_stub_events_payload() * 2, _stub_headers(99)),
+        fetch_event_odds=lambda key, eid: (sample_event_odds_payload, _stub_headers(98)),
+        snapshot_dir=tmp_path,
+        player_lookup_fn=None,
+        clock=lambda: datetime(2026, 5, 17, 11, 30, tzinfo=timezone.utc),
+    )
+    monkeypatch.setattr(client, "_resolve_id", lambda n: 1)
+    with pytest.raises(BudgetExhaustedError):
+        client.fetch(cutoff_date=date(2026, 5, 17))
+
+
+def test_budget_status_before_any_fetch_returns_none_remaining():
+    client = OddsAPIClient(api_key="x")
+    remaining, floor, ok = client.budget_status()
+    assert remaining is None
+    assert floor == DEFAULT_BUDGET_FLOOR
+    assert ok is False
+
+
+def test_budget_status_above_floor_returns_ok():
+    client = OddsAPIClient(api_key="x")
+    client._update_budget({"x-requests-remaining": "250"})
+    remaining, floor, ok = client.budget_status()
+    assert remaining == 250
+    assert floor == 100
+    assert ok is True
+
+
+def test_budget_status_below_floor_returns_not_ok():
+    client = OddsAPIClient(api_key="x")
+    client._update_budget({"x-requests-remaining": "75"})
+    remaining, floor, ok = client.budget_status()
+    assert remaining == 75
+    assert ok is False
+
+
+def test_budget_status_respects_custom_floor():
+    client = OddsAPIClient(api_key="x", budget_floor=200)
+    client._update_budget({"x-requests-remaining": "150"})
+    remaining, floor, ok = client.budget_status()
+    assert floor == 200
+    assert ok is False  # 150 < 200
 
 
 # -------- posted_k_prop_pitchers --------------------------------------------

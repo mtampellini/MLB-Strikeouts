@@ -46,7 +46,19 @@ ALLOWED_BOOKS = frozenset({"fanduel", "draftkings"})
 SPORT_KEY = "baseball_mlb"
 MARKET_KEY = "pitcher_strikeouts_alternate"
 REQUESTS_REMAINING_HEADER = "x-requests-remaining"
-DEFAULT_BUDGET_FLOOR = 50
+# Floor is 100 (not 50): a fresh 500-budget month has less slack to play with
+# than HR-Picks, which has been running for months and has stable usage.
+DEFAULT_BUDGET_FLOOR = 100
+
+# Env var name is intentionally distinct from HR-Picks' ODDS_API_KEY so the
+# repos can't accidentally share a key. The startup check in __init__ raises
+# if the strikeouts key is missing OR matches the HR key value.
+ENV_KEY_STRIKEOUTS = "ODDS_API_KEY_STRIKEOUTS"
+ENV_KEY_HR = "ODDS_API_KEY"
+
+
+class CrossRepoKeyBleedError(RuntimeError):
+    """The strikeouts API key is missing, or equals the HR repo's key."""
 
 
 class BudgetExhaustedError(RuntimeError):
@@ -220,7 +232,7 @@ class OddsAPIClient(AsOfClient):
         clock: Callable[[], datetime] | None = None,
         player_cache_path: Path | None = None,
     ) -> None:
-        self._api_key = api_key or os.environ.get("ODDS_API_KEY")
+        self._api_key = api_key if api_key is not None else _resolve_api_key()
         self._budget_floor = budget_floor
         self._fetch_events = fetch_events or self._default_fetch_events
         self._fetch_event_odds = fetch_event_odds or self._default_fetch_event_odds
@@ -232,6 +244,27 @@ class OddsAPIClient(AsOfClient):
         self._player_cache_dirty = False
         self._budget_exhausted = False
         self._last_requests_remaining: int | None = None
+
+    # ---- Budget pre-flight ---------------------------------------------------
+
+    def budget_status(self) -> tuple[int | None, int, bool]:
+        """Return ``(remaining, floor, ok_to_fetch)`` for pre-flight checks.
+
+        ``ok_to_fetch`` is True iff a recent response has carried an
+        ``x-requests-remaining`` header AND the value is at or above the floor.
+        Before any request is made ``remaining`` is None and ``ok_to_fetch``
+        is False — the conservative answer to "don't know yet."
+
+        Phase 7 pipeline calls this after the initial ``/events`` probe to
+        gate the per-event odds pulls.
+        """
+        remaining = self._last_requests_remaining
+        ok = (
+            remaining is not None
+            and remaining >= self._budget_floor
+            and not self._budget_exhausted
+        )
+        return (remaining, self._budget_floor, ok)
 
     # ---- AsOfClient interface ------------------------------------------------
 
@@ -245,10 +278,6 @@ class OddsAPIClient(AsOfClient):
     # ---- Live mode -----------------------------------------------------------
 
     def _fetch_live(self, target: date, *, dry_run: bool) -> list[EventOdds]:
-        if not self._api_key and not dry_run:
-            raise RuntimeError(
-                "OddsAPIClient: no API key configured (set ODDS_API_KEY)"
-            )
         events, headers = self._fetch_events(self._api_key or "")
         self._update_budget(headers)
 
@@ -463,6 +492,33 @@ class OddsAPIClient(AsOfClient):
 
 
 # -------- Module helpers ------------------------------------------------------
+
+
+def _resolve_api_key() -> str:
+    """Resolve the strikeouts API key from env with cross-repo bleed guard.
+
+    Raises :class:`CrossRepoKeyBleedError` if:
+      - ``ODDS_API_KEY_STRIKEOUTS`` is not set, OR
+      - it equals ``ODDS_API_KEY`` (HR-Picks' key value).
+
+    The bleed guard only fires when *both* env vars are set and equal; if HR's
+    key isn't in the env (e.g. CI), the strikeouts key is accepted as-is.
+    """
+    strikeouts_key = os.environ.get(ENV_KEY_STRIKEOUTS)
+    if not strikeouts_key:
+        raise CrossRepoKeyBleedError(
+            f"OddsAPIClient: env var {ENV_KEY_STRIKEOUTS!r} is not set. "
+            f"This repo uses a dedicated Odds API key separate from "
+            f"{ENV_KEY_HR!r} (the HR-Picks key). See backend/README.md."
+        )
+    hr_key = os.environ.get(ENV_KEY_HR)
+    if hr_key and strikeouts_key == hr_key:
+        raise CrossRepoKeyBleedError(
+            f"OddsAPIClient: {ENV_KEY_STRIKEOUTS!r} equals {ENV_KEY_HR!r}. "
+            f"This repo must use a separate API key — sharing depletes the "
+            f"HR-Picks budget. Check your .env."
+        )
+    return strikeouts_key
 
 
 def _commence_date(commence_time: str) -> date | None:

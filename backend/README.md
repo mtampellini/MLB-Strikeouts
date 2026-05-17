@@ -189,9 +189,24 @@ cd backend
 python -m venv .venv
 .venv\Scripts\activate
 pip install -e ".[dev]"
-copy .env.example .env       # then fill in ODDS_API_KEY
+copy .env.example .env       # then fill in ODDS_API_KEY_STRIKEOUTS
 pytest tests/
 ```
+
+### Odds API key
+
+This repo uses **`ODDS_API_KEY_STRIKEOUTS`** — a dedicated key, separate from
+HR-Picks' `ODDS_API_KEY`. `OddsAPIClient` enforces this in `__init__`:
+
+- Missing `ODDS_API_KEY_STRIKEOUTS` → `CrossRepoKeyBleedError`.
+- `ODDS_API_KEY_STRIKEOUTS` equals `ODDS_API_KEY` (HR's value) →
+  `CrossRepoKeyBleedError` ("can't share keys — would deplete HR's budget").
+
+Budget floor is 100 (vs HR's 50) because a fresh 500-budget month has less
+slack. `OddsAPIClient.budget_status()` returns `(remaining, floor, ok)` for
+Phase 7 pre-flight gating.
+
+GitHub Actions secret name: `ODDS_API_KEY_STRIKEOUTS`.
 
 ## Running (once Phase 7 ships)
 
