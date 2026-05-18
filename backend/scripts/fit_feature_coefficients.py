@@ -193,6 +193,11 @@ def _build_feature_rows(
         .groupby("game_pk")
     )
 
+    # pandas itertuples() mangles attribute names that start with double
+    # underscores (Python identifier rules), so rename the internal __season
+    # column for clean attribute access in the loop.
+    sample = sample.rename(columns={"__season": "season"})
+
     rows: list[dict] = []
     skipped = 0
     for game in sample.itertuples():
@@ -214,7 +219,7 @@ def _build_feature_rows(
             continue
 
         record = GameRecord(
-            season=int(game.__season),
+            season=int(game.season),
             game_pk=int(game.game_pk),
             game_date=game.game_date,
             pitcher_id=int(game.pitcher),
@@ -306,6 +311,13 @@ def main() -> int:
              "validating end-to-end pipeline without overnight commitment.",
     )
     parser.add_argument("--seasons", type=int, nargs="+", default=[2023, 2024, 2025])
+    parser.add_argument(
+        "--min-rows", type=int, default=None,
+        help=(
+            "Minimum post-NaN-drop sample size. Defaults to 2000 for --full, "
+            "100 otherwise. Halt with InsufficientSampleError if violated."
+        ),
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -315,8 +327,10 @@ def main() -> int:
 
     from scripts.design_matrix import (
         check_design_matrix,
+        drop_nan_rows,
         reparameterize_bf,
         reparameterize_kpa,
+        require_min_sample,
     )
     from scripts.historical_bundle import build_batter_cache, build_pitcher_cache
     from src.projection.inputs import ProjectionContext
@@ -359,9 +373,53 @@ def main() -> int:
     if rows_df.empty:
         raise SystemExit("no usable games in sample — investigate skip rate")
 
-    # Re-parameterize design matrices.
-    X_bf = reparameterize_bf(rows_df)
-    X_kpa = reparameterize_kpa(rows_df)
+    # Re-parameterize design matrices. NaN propagation is intentional:
+    # when a delta's baseline is missing (early season, sparse prior data,
+    # etc.), the delta is undefined and we treat it as missing-required-
+    # feature — drop the row, no median fill.
+    #
+    # Zero-variance columns (e.g. log_umpire_k_factor when the umpire
+    # factor file is placeholder all-1.0) are dropped at reparameterization
+    # time and tracked in the dropped_columns metadata. Self-healing: when
+    # real data lands, the column reappears automatically.
+    bf_design = reparameterize_bf(rows_df)
+    kpa_design = reparameterize_kpa(rows_df)
+    X_bf, X_kpa = bf_design.matrix, kpa_design.matrix
+
+    if bf_design.dropped_columns:
+        logger.info(
+            "E[BF] dropped zero-variance columns: %s", bf_design.dropped_columns
+        )
+    if kpa_design.dropped_columns:
+        logger.info(
+            "P(K|PA) dropped zero-variance columns: %s", kpa_design.dropped_columns
+        )
+
+    n_before = len(rows_df)
+    logger.info("sample before NaN drop: %d games", n_before)
+
+    (X_bf, X_kpa, rows_df), drop_counts = drop_nan_rows(X_bf, X_kpa, rows_df)
+    for col, n_drop in sorted(drop_counts.items()):
+        logger.info("  dropped %d rows due to NaN in %s", n_drop, col)
+
+    n_after = len(rows_df)
+    pct_retained = (100.0 * n_after / n_before) if n_before else 0.0
+    logger.info(
+        "sample after NaN drop: %d games (%.1f%% retained)",
+        n_after, pct_retained,
+    )
+
+    # Per (season, hand) cell counts so we can see if drops cluster anywhere.
+    if "season" in rows_df.columns and "p_throws" in rows_df.columns and n_after > 0:
+        cell_counts = rows_df.groupby(["season", "p_throws"]).size()
+        logger.info("per-(season, hand) cell counts after drop:\n%s",
+                    cell_counts.to_string())
+
+    # Minimum-sample threshold. Default depends on mode.
+    min_rows = args.min_rows
+    if min_rows is None:
+        min_rows = 2000 if args.full else 100
+    require_min_sample(n_after, min_rows, context="post-NaN-drop fit pool")
 
     # Sanity-check both BEFORE the fit. Halts on any violation.
     bf_diag = check_design_matrix(X_bf, name="E[BF]")
@@ -379,10 +437,10 @@ def main() -> int:
     test_mask = rows_df["season"] == 2025
     train = rows_df[train_mask].reset_index(drop=True)
     test = rows_df[test_mask].reset_index(drop=True)
-    X_bf_train = reparameterize_bf(train).to_numpy(dtype=float)
-    X_bf_test = reparameterize_bf(test).to_numpy(dtype=float)
-    X_kpa_train = reparameterize_kpa(train).to_numpy(dtype=float)
-    X_kpa_test = reparameterize_kpa(test).to_numpy(dtype=float)
+    X_bf_train = reparameterize_bf(train).matrix.to_numpy(dtype=float)
+    X_bf_test = reparameterize_bf(test).matrix.to_numpy(dtype=float)
+    X_kpa_train = reparameterize_kpa(train).matrix.to_numpy(dtype=float)
+    X_kpa_test = reparameterize_kpa(test).matrix.to_numpy(dtype=float)
 
     bf_coefs, bf_intercept, bf_r2_in = _fit_ols(
         X_bf_train, train["observed_bf"].to_numpy(dtype=float)
@@ -400,8 +458,8 @@ def main() -> int:
     )
 
     # Output
-    bf_cols = list(reparameterize_bf(train).columns)
-    kpa_cols = list(reparameterize_kpa(train).columns)
+    bf_cols = list(reparameterize_bf(train).matrix.columns)
+    kpa_cols = list(reparameterize_kpa(train).matrix.columns)
     bf_payload = {
         "sample_fit": not args.full,
         "n_games_train": int(len(train)),
@@ -413,6 +471,7 @@ def main() -> int:
             f: round(float(c), 4) for f, c in zip(bf_cols, bf_coefs)
         },
         "design_matrix_diagnostics": bf_diag,
+        "dropped_zero_variance": bf_design.dropped_columns,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
     kpa_payload = {
@@ -425,6 +484,7 @@ def main() -> int:
             f: round(float(c), 4) for f, c in zip(kpa_cols, kpa_coefs)
         },
         "design_matrix_diagnostics": kpa_diag,
+        "dropped_zero_variance": kpa_design.dropped_columns,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
     (PROCESSED_DIR / "feature_coefficients_bf.json").write_text(

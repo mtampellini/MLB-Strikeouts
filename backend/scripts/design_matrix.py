@@ -18,6 +18,7 @@ the overnight rerun halts immediately if any pre-fit condition is wrong.
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass, field
 from typing import Iterable
 
 import numpy as np
@@ -26,8 +27,56 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class ReparameterizedDesign:
+    """Output of a reparameterize_* call.
+
+    ``matrix`` is the design matrix. ``dropped_columns`` lists features that
+    were built but then dropped because they had std < ZERO_VARIANCE_THRESHOLD
+    (no signal to fit). The fit script surfaces ``dropped_columns`` in its
+    JSON output so future projection code knows which features weren't
+    actually fit and should be treated as neutral (factor=1.0, log-odds=0).
+    """
+
+    matrix: pd.DataFrame
+    dropped_columns: list[str] = field(default_factory=list)
+
+
+ZERO_VARIANCE_THRESHOLD = 1e-6
+
+
+def _drop_zero_variance(df: pd.DataFrame, *, context: str) -> ReparameterizedDesign:
+    """Drop columns with std < ZERO_VARIANCE_THRESHOLD; log each removal.
+
+    Self-healing by construction: a column entirely composed of neutral
+    values (log(1.0)=0 for every row when its underlying factor file is
+    placeholder all-1.0) returns std=0 and is dropped. When real data
+    eventually lands and the column gets non-zero variance, it re-enters
+    the design matrix automatically — no code change required.
+    """
+    if df.empty:
+        return ReparameterizedDesign(matrix=df, dropped_columns=[])
+    stds = df.std(numeric_only=True)
+    dropped: list[str] = []
+    for col, s in stds.items():
+        if pd.isna(s) or s < ZERO_VARIANCE_THRESHOLD:
+            dropped.append(str(col))
+            logger.warning(
+                "%s: dropped column %r from fit (std=%.3g, feature data "
+                "is uniformly neutral — no signal to fit)",
+                context, col, 0.0 if pd.isna(s) else float(s),
+            )
+    if dropped:
+        df = df.drop(columns=dropped)
+    return ReparameterizedDesign(matrix=df, dropped_columns=dropped)
+
+
 class DesignMatrixError(AssertionError):
     """Design matrix violates a pre-fit sanity check."""
+
+
+class InsufficientSampleError(AssertionError):
+    """Sample size after NaN drops is below the minimum required for fit."""
 
 
 # Default condition number threshold. The Phase 4c first attempt had
@@ -38,7 +87,60 @@ DEFAULT_CONDITION_THRESHOLD = 100.0
 DEFAULT_DELTA_MEAN_TOLERANCE = 0.01
 
 
-def reparameterize_kpa(features: pd.DataFrame) -> pd.DataFrame:
+def drop_nan_rows(
+    *matrices: pd.DataFrame,
+) -> tuple[list[pd.DataFrame], dict[str, int]]:
+    """Drop rows where ANY column in ANY matrix is NaN.
+
+    Treats undefined deltas (e.g. ``30d - season_baseline`` when the
+    baseline is missing) as missing-required-feature — same discipline as
+    every other missing-data case in the pipeline. No median fill, no
+    column drops, no fabrication; only row drops.
+
+    All matrices must have the same row count; the same rows are dropped
+    from each so they stay aligned.
+
+    Returns:
+        (cleaned_matrices, drop_counts) where drop_counts maps column name
+        to count of rows that had NaN in that column.
+    """
+    if not matrices:
+        return [], {}
+    n = len(matrices[0])
+    for m in matrices:
+        if len(m) != n:
+            raise ValueError(
+                f"drop_nan_rows: matrices must have same row count, "
+                f"got {[len(x) for x in matrices]}"
+            )
+
+    drop_counts: dict[str, int] = {}
+    mask = pd.Series([False] * n)
+    for m in matrices:
+        m_reset = m.reset_index(drop=True)
+        for col in m_reset.columns:
+            col_nan = m_reset[col].isna()
+            n_col = int(col_nan.sum())
+            if n_col > 0:
+                drop_counts[col] = n_col
+                mask = mask | col_nan
+
+    keep = ~mask
+    cleaned = [m.reset_index(drop=True)[keep.values].reset_index(drop=True) for m in matrices]
+    return cleaned, drop_counts
+
+
+def require_min_sample(n: int, min_required: int, *, context: str = "") -> None:
+    """Halt with :class:`InsufficientSampleError` if ``n < min_required``."""
+    if n < min_required:
+        suffix = f" for {context}" if context else ""
+        raise InsufficientSampleError(
+            f"Insufficient sample{suffix} after NaN drops "
+            f"({n} < {min_required}). Fit cannot proceed."
+        )
+
+
+def reparameterize_kpa(features: pd.DataFrame) -> ReparameterizedDesign:
     """Return a K|PA design matrix that's well-conditioned by construction.
 
     Replaces collinear pairs with their centered versions:
@@ -121,10 +223,10 @@ def reparameterize_kpa(features: pd.DataFrame) -> pd.DataFrame:
     if "umpire_k_zone_factor" in features.columns:
         out["log_umpire_k_factor"] = np.log(features["umpire_k_zone_factor"].clip(lower=1e-6))
 
-    return out
+    return _drop_zero_variance(out, context="reparameterize_kpa")
 
 
-def reparameterize_bf(features: pd.DataFrame) -> pd.DataFrame:
+def reparameterize_bf(features: pd.DataFrame) -> ReparameterizedDesign:
     """Return a well-conditioned E[BF] design matrix.
 
     The original spec sign-flipped on pitcher_pa_per_start_season. With the
@@ -163,7 +265,7 @@ def reparameterize_bf(features: pd.DataFrame) -> pd.DataFrame:
     if "park_k_factor" in features.columns:
         out["log_park_k_factor"] = np.log(features["park_k_factor"].clip(lower=1e-6))
 
-    return out
+    return _drop_zero_variance(out, context="reparameterize_bf")
 
 
 def check_design_matrix(
