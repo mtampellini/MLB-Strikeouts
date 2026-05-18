@@ -393,14 +393,30 @@ class LeagueAverages:
 
     @classmethod
     def from_json(cls, path: Path | str) -> "LeagueAverages":
+        """Load from JSON.
+
+        Accepts either the Phase 4a key naming (RR / RL / LR / LL) or the
+        legacy Phase 3a placeholder naming (RvR / RvL / LvR / LvL). The Phase
+        4a `season` field is honored if present; otherwise we fall back to
+        the legacy `year` field.
+        """
         blob = json.loads(Path(path).read_text(encoding="utf-8"))
         splits = blob["splits"]
+
+        def _get(short: str, long: str) -> HandednessAverages:
+            if short in splits:
+                return HandednessAverages.from_dict(splits[short])
+            if long in splits:
+                return HandednessAverages.from_dict(splits[long])
+            raise KeyError(f"LeagueAverages: missing split {short!r} (or {long!r})")
+
+        year = int(blob.get("season") or blob.get("year"))
         return cls(
-            year=int(blob["year"]),
-            r_vs_r=HandednessAverages.from_dict(splits["RvR"]),
-            r_vs_l=HandednessAverages.from_dict(splits["RvL"]),
-            l_vs_r=HandednessAverages.from_dict(splits["LvR"]),
-            l_vs_l=HandednessAverages.from_dict(splits["LvL"]),
+            year=year,
+            r_vs_r=_get("RR", "RvR"),
+            r_vs_l=_get("RL", "RvL"),
+            l_vs_r=_get("LR", "LvR"),
+            l_vs_l=_get("LL", "LvL"),
         )
 
     def lookup(

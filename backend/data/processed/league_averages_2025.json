@@ -1,30 +1,43 @@
 {
-  "_comment": "Leaguewide rate splits by (batter_hand, pitcher_hand). 'RvL' means right-handed batter vs left-handed pitcher. Switch hitters resolve to opposite-of-pitcher in code. Values are approximate published 2024-2025 leaguewide splits (FanGraphs/Statcast); refine in Phase 4 by computing from the full Statcast season once that backfill lands.",
-  "year": 2025,
+  "_note": "Statcast 'stand' always reflects the live batting side. Switch hitters facing RHP show up as L (in LR); facing LHP as R (in RL). LeagueAverages.lookup() applies the same resolution for queries on switch hitters at projection time.",
+  "all": {
+    "chase_rate": 0.282,
+    "k_pct": 0.2218,
+    "n_pa": 183245,
+    "obp": 0.3144,
+    "zone_contact_pct": 0.8496
+  },
+  "generated_at": "2026-05-18T00:42:06+00:00",
+  "n_pa": 183245,
+  "season": 2025,
   "splits": {
-    "RvR": {
-      "k_pct": 0.225,
-      "obp": 0.305,
-      "zone_contact_pct": 0.825,
-      "chase_rate": 0.295
+    "LL": {
+      "chase_rate": 0.2835,
+      "k_pct": 0.24,
+      "n_pa": 15279,
+      "obp": 0.2984,
+      "zone_contact_pct": 0.8332
     },
-    "RvL": {
-      "k_pct": 0.220,
-      "obp": 0.318,
-      "zone_contact_pct": 0.830,
-      "chase_rate": 0.285
+    "LR": {
+      "chase_rate": 0.2689,
+      "k_pct": 0.215,
+      "n_pa": 65442,
+      "obp": 0.3253,
+      "zone_contact_pct": 0.8549
     },
-    "LvR": {
-      "k_pct": 0.235,
-      "obp": 0.325,
-      "zone_contact_pct": 0.800,
-      "chase_rate": 0.293
+    "RL": {
+      "chase_rate": 0.2868,
+      "k_pct": 0.2216,
+      "n_pa": 34547,
+      "obp": 0.3157,
+      "zone_contact_pct": 0.8485
     },
-    "LvL": {
-      "k_pct": 0.268,
-      "obp": 0.300,
-      "zone_contact_pct": 0.780,
-      "chase_rate": 0.310
+    "RR": {
+      "chase_rate": 0.2922,
+      "k_pct": 0.2244,
+      "n_pa": 67977,
+      "obp": 0.3069,
+      "zone_contact_pct": 0.8485
     }
   }
 }
