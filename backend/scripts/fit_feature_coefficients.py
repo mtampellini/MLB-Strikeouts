@@ -295,6 +295,83 @@ def _fit_ols(X: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, float, float]:
     return beta[1:], float(beta[0]), r2
 
 
+def _weighted_logit_r2(
+    y_rate: np.ndarray, yhat_logit: np.ndarray, weights: np.ndarray,
+) -> float:
+    eps = 1e-6
+    y_clipped = np.clip(y_rate, eps, 1 - eps)
+    y_logit = np.log(y_clipped / (1 - y_clipped))
+    w_mean = float((weights * y_logit).sum() / weights.sum())
+    ss_res = float((weights * (y_logit - yhat_logit) ** 2).sum())
+    ss_tot = float((weights * (y_logit - w_mean) ** 2).sum())
+    return 1.0 - (ss_res / max(ss_tot, 1e-9))
+
+
+def _rate_r2(
+    y_rate: np.ndarray,
+    yhat_rate: np.ndarray,
+    weights: np.ndarray | None = None,
+) -> float:
+    if weights is None:
+        ss_res = float(((y_rate - yhat_rate) ** 2).sum())
+        ss_tot = float(((y_rate - y_rate.mean()) ** 2).sum())
+    else:
+        w_mean = float((weights * y_rate).sum() / weights.sum())
+        ss_res = float((weights * (y_rate - yhat_rate) ** 2).sum())
+        ss_tot = float((weights * (y_rate - w_mean) ** 2).sum())
+    return 1.0 - (ss_res / max(ss_tot, 1e-9))
+
+
+def _bootstrap_sign_consistency(
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    weights: np.ndarray | None,
+    col_names: list[str],
+    *,
+    n_boot: int = 200,
+    seed: int = 42,
+    logit: bool = True,
+) -> dict[str, dict[str, float]]:
+    """Bootstrap-resample training data, refit, count coefficient signs.
+
+    Stable coefficients should keep the same sign in >95% of bootstraps.
+    Coefficients with bimodal sign distributions reveal collinearity-
+    sensitive or noisy fits. 200 resamples × an OLS fit is fast (<1s).
+    """
+    rng = np.random.default_rng(seed)
+    n = len(X_train)
+    pos_counts = np.zeros(len(col_names))
+    neg_counts = np.zeros(len(col_names))
+    for _ in range(n_boot):
+        idx = rng.integers(0, n, n)
+        X_b = X_train[idx]
+        y_b = y_train[idx]
+        w_b = weights[idx] if weights is not None else None
+        try:
+            if logit:
+                coefs, _, _ = _fit_weighted_logit_ols(X_b, y_b, w_b)
+            else:
+                coefs, _, _ = _fit_ols(X_b, y_b)
+        except np.linalg.LinAlgError:
+            # Singular matrix on this resample — skip it
+            continue
+        pos_counts += (coefs > 1e-9).astype(int)
+        neg_counts += (coefs < -1e-9).astype(int)
+    total = pos_counts + neg_counts
+    return {
+        col: {
+            "pct_positive": round(float(pos_counts[i] / n_boot), 4),
+            "pct_negative": round(float(neg_counts[i] / n_boot), 4),
+            # Sign consistency = max(pct_positive, pct_negative). 1.0 = always
+            # same sign; 0.5 = bimodal.
+            "consistency": round(
+                float(max(pos_counts[i], neg_counts[i]) / max(total[i], 1)), 4,
+            ),
+        }
+        for i, col in enumerate(col_names)
+    }
+
+
 def _fit_weighted_logit_ols(
     X: np.ndarray, y_rate: np.ndarray, weights: np.ndarray,
 ) -> tuple[np.ndarray, float, float]:
@@ -486,15 +563,44 @@ def main() -> int:
         ((yte - yhat) ** 2).sum() / max(((yte - yte.mean()) ** 2).sum(), 1e-9)
     )
 
-    kpa_coefs, kpa_intercept, kpa_r2_in = _fit_weighted_logit_ols(
-        X_kpa_train,
-        train["observed_k_rate"].to_numpy(dtype=float),
-        train["observed_pa"].to_numpy(dtype=float),
+    y_train_rate = train["observed_k_rate"].to_numpy(dtype=float)
+    y_test_rate = test["observed_k_rate"].to_numpy(dtype=float)
+    w_train = train["observed_pa"].to_numpy(dtype=float)
+    w_test = test["observed_pa"].to_numpy(dtype=float)
+
+    kpa_coefs, kpa_intercept, kpa_r2_in_logit = _fit_weighted_logit_ols(
+        X_kpa_train, y_train_rate, w_train,
     )
 
-    # Output
+    # K|PA out-of-sample R² in logit space (Task 1 — missing branch)
+    yhat_train_logit = kpa_intercept + X_kpa_train @ kpa_coefs
+    yhat_test_logit = kpa_intercept + X_kpa_test @ kpa_coefs
+    kpa_r2_out_logit = _weighted_logit_r2(y_test_rate, yhat_test_logit, w_test)
+
+    # K|PA rate-space R² (Task 2 — apples-to-apples with original gate spec)
+    yhat_train_rate = 1.0 / (1.0 + np.exp(-yhat_train_logit))
+    yhat_test_rate = 1.0 / (1.0 + np.exp(-yhat_test_logit))
+    kpa_r2_in_rate = _rate_r2(y_train_rate, yhat_train_rate)
+    kpa_r2_out_rate = _rate_r2(y_test_rate, yhat_test_rate)
+    kpa_r2_in_rate_weighted = _rate_r2(y_train_rate, yhat_train_rate, w_train)
+    kpa_r2_out_rate_weighted = _rate_r2(y_test_rate, yhat_test_rate, w_test)
+
+    # Bootstrap sign stability (Task 3 — diagnose the sign flips)
     bf_cols = list(reparameterize_bf(train).matrix.columns)
     kpa_cols = list(reparameterize_kpa(train).matrix.columns)
+    logger.info("running 200-iter bootstrap for BF + K|PA sign stability...")
+    bf_bootstrap = _bootstrap_sign_consistency(
+        X_bf_train,
+        train["observed_bf"].to_numpy(dtype=float),
+        weights=None,
+        col_names=bf_cols,
+        n_boot=200, seed=42, logit=False,
+    )
+    kpa_bootstrap = _bootstrap_sign_consistency(
+        X_kpa_train, y_train_rate, w_train,
+        col_names=kpa_cols,
+        n_boot=200, seed=42, logit=True,
+    )
     bf_payload = {
         "sample_fit": not args.full,
         "n_games_train": int(len(train)),
@@ -507,19 +613,29 @@ def main() -> int:
         },
         "design_matrix_diagnostics": bf_diag,
         "dropped_zero_variance": bf_design.dropped_columns,
+        "bootstrap_sign_consistency": bf_bootstrap,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
     kpa_payload = {
         "sample_fit": not args.full,
         "n_games_train": int(len(train)),
         "n_games_test": int(len(test)),
-        "in_sample_r2_logit": round(kpa_r2_in, 4),
+        "in_sample_r2_logit": round(kpa_r2_in_logit, 4),
+        "out_of_sample_r2_logit": round(kpa_r2_out_logit, 4),
+        "logit_r2_delta": round(kpa_r2_in_logit - kpa_r2_out_logit, 4),
+        "rate_space_r2": {
+            "in_sample": round(kpa_r2_in_rate, 4),
+            "out_of_sample": round(kpa_r2_out_rate, 4),
+            "in_sample_weighted": round(kpa_r2_in_rate_weighted, 4),
+            "out_of_sample_weighted": round(kpa_r2_out_rate_weighted, 4),
+        },
         "intercept_logit": round(kpa_intercept, 4),
         "coefficients_logit": {
             f: round(float(c), 4) for f, c in zip(kpa_cols, kpa_coefs)
         },
         "design_matrix_diagnostics": kpa_diag,
         "dropped_zero_variance": kpa_design.dropped_columns,
+        "bootstrap_sign_consistency": kpa_bootstrap,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
     (PROCESSED_DIR / "feature_coefficients_bf.json").write_text(
@@ -528,8 +644,35 @@ def main() -> int:
     (PROCESSED_DIR / "feature_coefficients_kpa.json").write_text(
         json.dumps(kpa_payload, indent=2, sort_keys=True), encoding="utf-8",
     )
-    logger.info("E[BF] fit: in-sample R^2=%.4f, out-of-sample R^2=%.4f", bf_r2_in, bf_r2_out)
-    logger.info("P(K|PA) fit (logit): in-sample R^2=%.4f", kpa_r2_in)
+    logger.info(
+        "E[BF] fit: in-sample R^2=%.4f, out-of-sample R^2=%.4f",
+        bf_r2_in, bf_r2_out,
+    )
+    logger.info(
+        "P(K|PA) fit (logit): in-sample R^2=%.4f, out-of-sample R^2=%.4f, "
+        "delta=%.4f",
+        kpa_r2_in_logit, kpa_r2_out_logit,
+        kpa_r2_in_logit - kpa_r2_out_logit,
+    )
+    logger.info(
+        "P(K|PA) fit (rate space): in=%.4f / out=%.4f | "
+        "weighted in=%.4f / out=%.4f",
+        kpa_r2_in_rate, kpa_r2_out_rate,
+        kpa_r2_in_rate_weighted, kpa_r2_out_rate_weighted,
+    )
+    logger.info("bootstrap sign consistency (200 resamples):")
+    logger.info("  E[BF]:")
+    for col, info in bf_bootstrap.items():
+        logger.info(
+            "    %-40s  pos=%.2f  neg=%.2f  consistency=%.2f",
+            col, info["pct_positive"], info["pct_negative"], info["consistency"],
+        )
+    logger.info("  P(K|PA):")
+    for col, info in kpa_bootstrap.items():
+        logger.info(
+            "    %-40s  pos=%.2f  neg=%.2f  consistency=%.2f",
+            col, info["pct_positive"], info["pct_negative"], info["consistency"],
+        )
     return 0
 
 

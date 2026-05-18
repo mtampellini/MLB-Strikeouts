@@ -1,27 +1,65 @@
 {
+  "bootstrap_sign_consistency": {
+    "lineup_obp_vs_hand": {
+      "consistency": 0.895,
+      "pct_negative": 0.895,
+      "pct_positive": 0.105
+    },
+    "log_park_k_factor": {
+      "consistency": 0.81,
+      "pct_negative": 0.81,
+      "pct_positive": 0.19
+    },
+    "log_park_run_factor": {
+      "consistency": 0.865,
+      "pct_negative": 0.135,
+      "pct_positive": 0.865
+    },
+    "pitcher_ip_per_start_30d_shrunk": {
+      "consistency": 1.0,
+      "pct_negative": 0.0,
+      "pct_positive": 1.0
+    },
+    "pitcher_pitches_per_pa_30d_delta": {
+      "consistency": 1.0,
+      "pct_negative": 0.0,
+      "pct_positive": 1.0
+    },
+    "pitcher_pitches_per_pa_season": {
+      "consistency": 1.0,
+      "pct_negative": 0.0,
+      "pct_positive": 1.0
+    }
+  },
   "coefficients": {
-    "park_k_factor": -3.1426,
-    "pitcher_pa_per_start_season": -0.0998
+    "lineup_obp_vs_hand": -4.235,
+    "log_park_k_factor": -0.9121,
+    "log_park_run_factor": 2.5446,
+    "pitcher_ip_per_start_30d_shrunk": 2.203,
+    "pitcher_pitches_per_pa_30d_delta": 1.1071,
+    "pitcher_pitches_per_pa_season": 0.8582
   },
-  "generated_at": "2026-05-18T01:33:05+00:00",
-  "in_sample_r2": 0.1126,
-  "intercept": 27.8915,
-  "leakage_shuffle": {
-    "drop_under_shuffle": -0.0245,
-    "real_out_of_sample_r2": 0.1012,
-    "shuffled_out_of_sample_r2": 0.1257
+  "design_matrix_diagnostics": {
+    "columns": [
+      "pitcher_ip_per_start_30d_shrunk",
+      "pitcher_pitches_per_pa_season",
+      "pitcher_pitches_per_pa_30d_delta",
+      "lineup_obp_vs_hand",
+      "log_park_run_factor",
+      "log_park_k_factor"
+    ],
+    "condition_number": 1.23,
+    "max_std": 0.928181,
+    "min_std": 0.015819,
+    "n_columns": 6,
+    "n_rows": 9270
   },
-  "missing_features": [
-    "pitcher_ip_per_start_30d_shrunk - 30d rolling deferred to overnight",
-    "pitcher_pitches_per_pa_season - requires pitch-level aggregation",
-    "pitcher_pitches_per_pa_30d - same",
-    "lineup_obp_vs_hand - per-batter aggregation deferred",
-    "weather_run_environment - needs boxscore weather lookups",
-    "days_rest_bucket - needs per-pitcher game-date chains",
-    "team_bullpen_short_hook_indicator - data source pending"
-  ],
-  "n_games_test": 471,
-  "n_games_train": 473,
-  "out_of_sample_r2": 0.1012,
-  "sample_fit": true
+  "dropped_zero_variance": [],
+  "generated_at": "2026-05-18T13:35:01+00:00",
+  "in_sample_r2": 0.2637,
+  "intercept": 9.3446,
+  "n_games_test": 4682,
+  "n_games_train": 4588,
+  "out_of_sample_r2": 0.3046,
+  "sample_fit": false
 }

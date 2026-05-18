@@ -1,30 +1,109 @@
 {
+  "bootstrap_sign_consistency": {
+    "league_k_pct_vs_hand": {
+      "consistency": 1.0,
+      "pct_negative": 0.0,
+      "pct_positive": 1.0
+    },
+    "lineup_chase_delta": {
+      "consistency": 0.99,
+      "pct_negative": 0.99,
+      "pct_positive": 0.01
+    },
+    "lineup_k_pct_delta": {
+      "consistency": 0.995,
+      "pct_negative": 0.005,
+      "pct_positive": 0.995
+    },
+    "lineup_zone_contact_delta": {
+      "consistency": 1.0,
+      "pct_negative": 1.0,
+      "pct_positive": 0.0
+    },
+    "log_park_k_factor": {
+      "consistency": 1.0,
+      "pct_negative": 0.0,
+      "pct_positive": 1.0
+    },
+    "pitcher_chase_whiff_pct_30d_delta": {
+      "consistency": 0.82,
+      "pct_negative": 0.18,
+      "pct_positive": 0.82
+    },
+    "pitcher_csw_pct_30d_delta": {
+      "consistency": 0.67,
+      "pct_negative": 0.33,
+      "pct_positive": 0.67
+    },
+    "pitcher_k_pct_30d_delta": {
+      "consistency": 0.915,
+      "pct_negative": 0.915,
+      "pct_positive": 0.085
+    },
+    "pitcher_k_pct_delta": {
+      "consistency": 1.0,
+      "pct_negative": 0.0,
+      "pct_positive": 1.0
+    },
+    "pitcher_putaway_pct_delta": {
+      "consistency": 0.55,
+      "pct_negative": 0.55,
+      "pct_positive": 0.45
+    },
+    "pitcher_velocity_trend_z": {
+      "consistency": 0.97,
+      "pct_negative": 0.03,
+      "pct_positive": 0.97
+    }
+  },
   "coefficients_logit": {
-    "league_k_pct_vs_hand": -525.2249,
-    "park_k_factor": 1.8411,
-    "pitcher_k_pct_season": 10.2842
+    "league_k_pct_vs_hand": 23.4928,
+    "lineup_chase_delta": -2.6508,
+    "lineup_k_pct_delta": 4.1873,
+    "lineup_zone_contact_delta": -4.1472,
+    "log_park_k_factor": 1.8816,
+    "pitcher_chase_whiff_pct_30d_delta": 0.289,
+    "pitcher_csw_pct_30d_delta": 0.2773,
+    "pitcher_k_pct_30d_delta": -1.1253,
+    "pitcher_k_pct_delta": 6.0686,
+    "pitcher_putaway_pct_delta": -0.0045,
+    "pitcher_velocity_trend_z": 0.1729
   },
-  "generated_at": "2026-05-18T01:33:05+00:00",
-  "in_sample_r2_logit": 0.0618,
-  "intercept_logit": 112.5878,
-  "leakage_shuffle": {
-    "drop_under_shuffle": -1.5777,
-    "real_out_of_sample_r2_logit": -1.5267,
-    "shuffled_out_of_sample_r2_logit": 0.051
+  "design_matrix_diagnostics": {
+    "columns": [
+      "league_k_pct_vs_hand",
+      "pitcher_k_pct_delta",
+      "pitcher_k_pct_30d_delta",
+      "pitcher_csw_pct_30d_delta",
+      "pitcher_chase_whiff_pct_30d_delta",
+      "pitcher_putaway_pct_delta",
+      "pitcher_velocity_trend_z",
+      "lineup_k_pct_delta",
+      "lineup_zone_contact_delta",
+      "lineup_chase_delta",
+      "log_park_k_factor"
+    ],
+    "condition_number": 3.31,
+    "max_std": 0.263812,
+    "min_std": 0.003675,
+    "n_columns": 11,
+    "n_rows": 9270
   },
-  "missing_features": [
-    "pitcher_k_pct_30d_blended - 30d rolling deferred to overnight",
-    "pitcher_csw_pct_30d - needs pitch-level data, deferred",
-    "pitcher_chase_whiff_pct_30d - same",
-    "pitcher_velocity_trend_3starts - same",
-    "pitcher_putaway_pitch_concentration - same",
-    "lineup_k_pct_vs_hand - per-batter aggregation deferred",
-    "lineup_zone_contact_pct - pitch-level, deferred",
-    "lineup_chase_rate - same",
-    "umpire_k_zone_factor - needs boxscore lookups"
+  "dropped_zero_variance": [
+    "log_umpire_k_factor"
   ],
-  "n_games_test": 471,
-  "n_games_train": 473,
-  "out_of_sample_r2_logit": -1.5267,
-  "sample_fit": true
+  "generated_at": "2026-05-18T13:35:01+00:00",
+  "in_sample_r2_logit": 0.0592,
+  "intercept_logit": -6.8569,
+  "logit_r2_delta": 0.0111,
+  "n_games_test": 4682,
+  "n_games_train": 4588,
+  "out_of_sample_r2_logit": 0.0482,
+  "rate_space_r2": {
+    "in_sample": -0.0056,
+    "in_sample_weighted": -0.0026,
+    "out_of_sample": -0.0449,
+    "out_of_sample_weighted": -0.0375
+  },
+  "sample_fit": false
 }
