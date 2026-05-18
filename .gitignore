@@ -34,6 +34,7 @@ backend/data/processed/*
 !backend/data/processed/league_averages_*.json
 !backend/data/processed/park_factors.json
 !backend/data/processed/park_k_factors.json
+!backend/data/processed/park_k_factors_report.json
 !backend/data/processed/umpire_k_factors.json
 # Phase 4c output (sample-fit; current attempt FAILED gates, kept for diagnostic).
 !backend/data/processed/feature_coefficients_*.json
