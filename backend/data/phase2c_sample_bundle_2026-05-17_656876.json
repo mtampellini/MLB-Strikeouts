@@ -32,7 +32,7 @@
     "cutoff_date": "2026-05-16",
     "game_date": "2026-05-17",
     "game_pk": 822982,
-    "generated_at": "2026-05-17T23:48:42+00:00",
+    "generated_at": "2026-05-18T00:09:32+00:00",
     "pitcher_mlbam_id": 656876,
     "pitcher_name": "Drew Rasmussen"
   },
@@ -261353,6 +261353,6 @@
         "zone": 13.0
       }
     ],
-    "team_abbr": "TB"
+    "team_abbr": "TBR"
   }
 }

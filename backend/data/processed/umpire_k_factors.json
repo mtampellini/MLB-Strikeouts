@@ -1,0 +1,4 @@
+{
+  "_comment": "Home plate umpire K-zone factors keyed by MLB umpire_id. 1.0 = neutral (a strict zone bumps K%, a generous one drops it). Empty {} for v1; real values come from a weekly derivation script in Phase 7+ using a rolling 162-game window. Missing umpire here defaults to 1.0 (UmpireKFactors.get).",
+  "factors": {}
+}

@@ -39,7 +39,11 @@ from src.data.odds_client import (
     OddsAPIClient,
     PitcherProp,
 )
-from src.data.probables_client import ProbablePitcher, ProbablesClient
+from src.data.probables_client import (
+    ProbablePitcher,
+    ProbablesClient,
+    normalize_team_abbr,
+)
 from src.data.statcast_client import StatcastClient
 from src.data.statsapi_client import (
     BatterEntry,
@@ -175,11 +179,11 @@ def find_game_pk_and_side(
             for side in ("home", "away"):
                 pp = ((game.get("teams") or {}).get(side) or {}).get("probablePitcher")
                 if pp and pp.get("id") == pitcher_id:
-                    home_team = (
+                    home_team = normalize_team_abbr(
                         ((game["teams"]["home"] or {}).get("team") or {}).get("abbreviation")
                         or ""
                     )
-                    away_team = (
+                    away_team = normalize_team_abbr(
                         ((game["teams"]["away"] or {}).get("team") or {}).get("abbreviation")
                         or ""
                     )

@@ -1,0 +1,30 @@
+{
+  "_comment": "Leaguewide rate splits by (batter_hand, pitcher_hand). 'RvL' means right-handed batter vs left-handed pitcher. Switch hitters resolve to opposite-of-pitcher in code. Values are approximate published 2024-2025 leaguewide splits (FanGraphs/Statcast); refine in Phase 4 by computing from the full Statcast season once that backfill lands.",
+  "year": 2025,
+  "splits": {
+    "RvR": {
+      "k_pct": 0.225,
+      "obp": 0.305,
+      "zone_contact_pct": 0.825,
+      "chase_rate": 0.295
+    },
+    "RvL": {
+      "k_pct": 0.220,
+      "obp": 0.318,
+      "zone_contact_pct": 0.830,
+      "chase_rate": 0.285
+    },
+    "LvR": {
+      "k_pct": 0.235,
+      "obp": 0.325,
+      "zone_contact_pct": 0.800,
+      "chase_rate": 0.293
+    },
+    "LvL": {
+      "k_pct": 0.268,
+      "obp": 0.300,
+      "zone_contact_pct": 0.780,
+      "chase_rate": 0.310
+    }
+  }
+}
