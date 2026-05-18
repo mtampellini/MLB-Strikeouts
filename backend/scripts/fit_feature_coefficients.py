@@ -267,6 +267,23 @@ def _build_feature_rows(
     return pd.DataFrame(rows)
 
 
+def _check_min_sample_unless_smoke(
+    n: int, min_rows: int, *, smoke: bool, context: str = "",
+) -> bool:
+    """Run :func:`require_min_sample` unless in smoke mode.
+
+    Returns True if the check was performed (and passed; raises otherwise),
+    False if it was skipped due to smoke. Smoke runs validate pipeline
+    shape and don't run OLS, so the minimum-sample gate doesn't apply.
+    """
+    from scripts.design_matrix import require_min_sample
+
+    if smoke:
+        return False
+    require_min_sample(n, min_rows, context=context)
+    return True
+
+
 def _fit_ols(X: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, float, float]:
     n = X.shape[0]
     Xb = np.hstack([np.ones((n, 1)), X])
@@ -428,11 +445,16 @@ def main() -> int:
                     int(season), hand, int(count),
                 )
 
-    # Minimum-sample threshold. Default depends on mode.
+    # Minimum-sample threshold. Default depends on mode. In --smoke we skip
+    # the check entirely — smoke validates the pipeline shape, not the fit's
+    # statistical adequacy, and OLS isn't run anyway.
     min_rows = args.min_rows
     if min_rows is None:
         min_rows = 2000 if args.full else 100
-    require_min_sample(n_after, min_rows, context="post-NaN-drop fit pool")
+    if not _check_min_sample_unless_smoke(
+        n_after, min_rows, smoke=args.smoke, context="post-NaN-drop fit pool"
+    ):
+        logger.info("--smoke: skipping require_min_sample check")
 
     # Sanity-check both BEFORE the fit. Halts on any violation.
     bf_diag = check_design_matrix(X_bf, name="E[BF]")
@@ -441,7 +463,7 @@ def main() -> int:
     logger.info("P(K|PA) design matrix: %s", kpa_diag)
 
     if args.smoke:
-        logger.info("--smoke: skipping fit. End-to-end pipeline validated.")
+        logger.info("Smoke run complete: pipeline validated, OLS skipped")
         return 0
 
     # Walk-forward split
