@@ -410,10 +410,23 @@ def main() -> int:
     )
 
     # Per (season, hand) cell counts so we can see if drops cluster anywhere.
+    # Format: "post-drop cell counts: 2024 L=N, 2024 R=N, 2025 L=N, 2025 R=N"
+    # Diagnostic only — cells below 50 get a WARNING but do not halt the fit
+    # (overall-sample threshold via require_min_sample is the gate).
     if "season" in rows_df.columns and "p_throws" in rows_df.columns and n_after > 0:
         cell_counts = rows_df.groupby(["season", "p_throws"]).size()
-        logger.info("per-(season, hand) cell counts after drop:\n%s",
-                    cell_counts.to_string())
+        formatted = ", ".join(
+            f"{int(season)} {hand}={int(count)}"
+            for (season, hand), count in cell_counts.items()
+        )
+        logger.info("post-drop cell counts: %s", formatted)
+        for (season, hand), count in cell_counts.items():
+            if int(count) < 50:
+                logger.warning(
+                    "cell (season=%d, hand=%s) has only %d rows after drops "
+                    "— per-hand effects may be unstable",
+                    int(season), hand, int(count),
+                )
 
     # Minimum-sample threshold. Default depends on mode.
     min_rows = args.min_rows
