@@ -1,0 +1,201 @@
+{
+  "generated_at": "2026-05-18T22:44:46+00:00",
+  "histograms": {
+    "bucket_edges": [
+      0.0,
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9,
+      0.95,
+      1.0
+    ],
+    "fastball_pct": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      7,
+      34,
+      67,
+      126,
+      149,
+      148,
+      99,
+      58,
+      32,
+      16,
+      4,
+      4,
+      0,
+      0
+    ],
+    "breaking_pct": [
+      11,
+      22,
+      41,
+      59,
+      101,
+      135,
+      141,
+      99,
+      70,
+      38,
+      20,
+      5,
+      3,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "offspeed_pct": [
+      111,
+      139,
+      138,
+      143,
+      103,
+      64,
+      32,
+      12,
+      3,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "threshold_sensitivity": {
+    "fastball_threshold": {
+      "0.50": {
+        "Sinker-ball": 131,
+        "Balanced": 128,
+        "Power-FF": 247,
+        "Breaking-heavy": 165,
+        "Offspeed-heavy": 75
+      },
+      "0.55_default": {
+        "Sinker-ball": 104,
+        "Balanced": 183,
+        "Breaking-heavy": 203,
+        "Power-FF": 167,
+        "Offspeed-heavy": 89
+      },
+      "0.60": {
+        "Sinker-ball": 65,
+        "Balanced": 256,
+        "Breaking-heavy": 228,
+        "Power-FF": 101,
+        "Offspeed-heavy": 96
+      }
+    },
+    "breaking_threshold": {
+      "0.30": {
+        "Sinker-ball": 104,
+        "Breaking-heavy": 294,
+        "Power-FF": 167,
+        "Balanced": 106,
+        "Offspeed-heavy": 75
+      },
+      "0.35_default": {
+        "Sinker-ball": 104,
+        "Balanced": 183,
+        "Breaking-heavy": 203,
+        "Power-FF": 167,
+        "Offspeed-heavy": 89
+      },
+      "0.40": {
+        "Sinker-ball": 104,
+        "Balanced": 254,
+        "Breaking-heavy": 128,
+        "Power-FF": 167,
+        "Offspeed-heavy": 93
+      }
+    },
+    "offspeed_threshold": {
+      "0.20": {
+        "Sinker-ball": 104,
+        "Balanced": 117,
+        "Breaking-heavy": 203,
+        "Power-FF": 167,
+        "Offspeed-heavy": 155
+      },
+      "0.25_default": {
+        "Sinker-ball": 104,
+        "Balanced": 183,
+        "Breaking-heavy": 203,
+        "Power-FF": 167,
+        "Offspeed-heavy": 89
+      },
+      "0.30": {
+        "Sinker-ball": 104,
+        "Balanced": 231,
+        "Breaking-heavy": 203,
+        "Power-FF": 167,
+        "Offspeed-heavy": 41
+      }
+    }
+  },
+  "year_over_year_transitions": {
+    "2023_to_2024": {
+      "n_pitchers_in_both": 166,
+      "n_changed_archetype": 65,
+      "pct_changed": 0.3916,
+      "top_transitions": {
+        "Power-FF -> Balanced": 12,
+        "Offspeed-heavy -> Balanced": 7,
+        "Breaking-heavy -> Balanced": 5,
+        "Balanced -> Sinker-ball": 5,
+        "Power-FF -> Breaking-heavy": 4,
+        "Breaking-heavy -> Offspeed-heavy": 4,
+        "Balanced -> Breaking-heavy": 4,
+        "Breaking-heavy -> Power-FF": 4,
+        "Balanced -> Offspeed-heavy": 3,
+        "Sinker-ball -> Offspeed-heavy": 3
+      }
+    },
+    "2024_to_2025": {
+      "n_pitchers_in_both": 168,
+      "n_changed_archetype": 71,
+      "pct_changed": 0.4226,
+      "top_transitions": {
+        "Balanced -> Power-FF": 9,
+        "Sinker-ball -> Balanced": 8,
+        "Balanced -> Breaking-heavy": 7,
+        "Power-FF -> Balanced": 7,
+        "Offspeed-heavy -> Balanced": 6,
+        "Balanced -> Sinker-ball": 4,
+        "Balanced -> Offspeed-heavy": 4,
+        "Breaking-heavy -> Power-FF": 4,
+        "Breaking-heavy -> Balanced": 4,
+        "Power-FF -> Breaking-heavy": 4
+      }
+    }
+  }
+}
