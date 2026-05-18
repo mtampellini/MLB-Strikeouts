@@ -31,7 +31,7 @@ backend/data/raw/*
 backend/data/processed/*
 # EXCEPT — files explicitly committed:
 # Static lookup tables used by the projection layer (Phase 3):
-!backend/data/processed/league_averages_2025.json
+!backend/data/processed/league_averages_*.json
 !backend/data/processed/park_factors.json
 !backend/data/processed/park_k_factors.json
 !backend/data/processed/umpire_k_factors.json
