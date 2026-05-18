@@ -466,6 +466,34 @@ class UmpireKFactors:
         return self.factors.get(int(umpire_id), 1.0)
 
 
+@dataclass(frozen=True)
+class ProjectionContext:
+    """Bundle the static lookup tables that feature builders consume.
+
+    Loaded once at the top of a projection run and passed through to every
+    builder. Keeps each builder's signature flat (no kwarg explosion).
+    """
+
+    league_avgs: LeagueAverages
+    park_run_factors: ParkFactors
+    park_k_factors: ParkFactors
+    umpire_k_factors: UmpireKFactors
+
+    @classmethod
+    def from_default_paths(cls) -> "ProjectionContext":
+        processed = Path(__file__).resolve().parents[2] / "data" / "processed"
+        return cls(
+            league_avgs=LeagueAverages.from_json(
+                processed / "league_averages_2025.json"
+            ),
+            park_run_factors=ParkFactors.from_json(processed / "park_factors.json"),
+            park_k_factors=ParkFactors.from_json(processed / "park_k_factors.json"),
+            umpire_k_factors=UmpireKFactors.from_json(
+                processed / "umpire_k_factors.json"
+            ),
+        )
+
+
 # ---- Validators ------------------------------------------------------------
 
 

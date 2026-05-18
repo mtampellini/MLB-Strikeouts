@@ -26,6 +26,7 @@ from .inputs import (
     ParkFactors,
     PitcherInputs,
     ProjectionBundle,
+    ProjectionContext,
     UmpireKFactors,
     WeatherInputs,
 )
@@ -45,6 +46,7 @@ __all__ = [
     "ParkFactors",
     "PitcherInputs",
     "ProjectionBundle",
+    "ProjectionContext",
     "UmpireKFactors",
     "WeatherInputs",
 ]
