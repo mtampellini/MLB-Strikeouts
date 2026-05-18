@@ -1,0 +1,27 @@
+{
+  "coefficients": {
+    "park_k_factor": -3.1426,
+    "pitcher_pa_per_start_season": -0.0998
+  },
+  "generated_at": "2026-05-18T01:33:05+00:00",
+  "in_sample_r2": 0.1126,
+  "intercept": 27.8915,
+  "leakage_shuffle": {
+    "drop_under_shuffle": -0.0245,
+    "real_out_of_sample_r2": 0.1012,
+    "shuffled_out_of_sample_r2": 0.1257
+  },
+  "missing_features": [
+    "pitcher_ip_per_start_30d_shrunk - 30d rolling deferred to overnight",
+    "pitcher_pitches_per_pa_season - requires pitch-level aggregation",
+    "pitcher_pitches_per_pa_30d - same",
+    "lineup_obp_vs_hand - per-batter aggregation deferred",
+    "weather_run_environment - needs boxscore weather lookups",
+    "days_rest_bucket - needs per-pitcher game-date chains",
+    "team_bullpen_short_hook_indicator - data source pending"
+  ],
+  "n_games_test": 471,
+  "n_games_train": 473,
+  "out_of_sample_r2": 0.1012,
+  "sample_fit": true
+}

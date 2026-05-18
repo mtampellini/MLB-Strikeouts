@@ -1,0 +1,30 @@
+{
+  "coefficients_logit": {
+    "league_k_pct_vs_hand": -525.2249,
+    "park_k_factor": 1.8411,
+    "pitcher_k_pct_season": 10.2842
+  },
+  "generated_at": "2026-05-18T01:33:05+00:00",
+  "in_sample_r2_logit": 0.0618,
+  "intercept_logit": 112.5878,
+  "leakage_shuffle": {
+    "drop_under_shuffle": -1.5777,
+    "real_out_of_sample_r2_logit": -1.5267,
+    "shuffled_out_of_sample_r2_logit": 0.051
+  },
+  "missing_features": [
+    "pitcher_k_pct_30d_blended - 30d rolling deferred to overnight",
+    "pitcher_csw_pct_30d - needs pitch-level data, deferred",
+    "pitcher_chase_whiff_pct_30d - same",
+    "pitcher_velocity_trend_3starts - same",
+    "pitcher_putaway_pitch_concentration - same",
+    "lineup_k_pct_vs_hand - per-batter aggregation deferred",
+    "lineup_zone_contact_pct - pitch-level, deferred",
+    "lineup_chase_rate - same",
+    "umpire_k_zone_factor - needs boxscore lookups"
+  ],
+  "n_games_test": 471,
+  "n_games_train": 473,
+  "out_of_sample_r2_logit": -1.5267,
+  "sample_fit": true
+}
