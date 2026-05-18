@@ -341,7 +341,8 @@ def team_bullpen_short_hook_indicator(
 
 @dataclass(frozen=True)
 class EBFResult:
-    e_bf: float | None
+    e_bf: float | None           # clipped to [BF_FLOOR, BF_CEIL]
+    e_bf_raw: float | None       # pre-clip; projector uses this for the < 12 hard filter
     used_features: dict
     skipped: bool
     skip_reason: str | None
@@ -387,7 +388,8 @@ def compute_e_bf(
     ip_val, ip_miss = pitcher_ip_per_start_30d_shrunk(bundle, ctx)
     if ip_val is None:
         return EBFResult(
-            e_bf=None, used_features={"pitcher_ip_per_start_30d_shrunk": None},
+            e_bf=None, e_bf_raw=None,
+            used_features={"pitcher_ip_per_start_30d_shrunk": None},
             skipped=True, skip_reason=f"pitcher_ip_per_start_30d_shrunk: {ip_miss}",
         )
     used["pitcher_ip_per_start_30d_shrunk"] = ip_val
@@ -395,7 +397,7 @@ def compute_e_bf(
     pps_val, pps_miss = pitcher_pitches_per_pa_season(bundle, ctx)
     if pps_val is None:
         return EBFResult(
-            e_bf=None, used_features=used,
+            e_bf=None, e_bf_raw=None, used_features=used,
             skipped=True, skip_reason=f"pitcher_pitches_per_pa_season: {pps_miss}",
         )
     used["pitcher_pitches_per_pa_season"] = pps_val
@@ -403,7 +405,7 @@ def compute_e_bf(
     lobp_val, lobp_miss = lineup_obp_vs_hand(bundle, ctx)
     if lobp_val is None:
         return EBFResult(
-            e_bf=None, used_features=used,
+            e_bf=None, e_bf_raw=None, used_features=used,
             skipped=True, skip_reason=f"lineup_obp_vs_hand: {lobp_miss}",
         )
     used["lineup_obp_vs_hand"] = lobp_val
@@ -411,7 +413,7 @@ def compute_e_bf(
     park_val, park_miss = park_run_environment_factor(bundle, ctx)
     if park_val is None:
         return EBFResult(
-            e_bf=None, used_features=used,
+            e_bf=None, e_bf_raw=None, used_features=used,
             skipped=True, skip_reason=f"park_run_environment_factor: {park_miss}",
         )
     used["park_run_environment_factor"] = park_val
@@ -454,6 +456,7 @@ def compute_e_bf(
 
     return EBFResult(
         e_bf=e_bf,
+        e_bf_raw=raw_e_bf,
         used_features=used,
         skipped=False,
         skip_reason=None,

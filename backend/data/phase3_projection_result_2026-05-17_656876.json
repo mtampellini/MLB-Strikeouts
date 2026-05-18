@@ -1,0 +1,39 @@
+{
+  "bundle_metadata": {
+    "bundle_version": "1.0",
+    "cutoff_date": "2026-05-16",
+    "game_date": "2026-05-17",
+    "game_pk": 822982,
+    "generated_at": "2026-05-18T00:09:32+00:00",
+    "pitcher_mlbam_id": 656876,
+    "pitcher_name": "Drew Rasmussen"
+  },
+  "e_bf": 25.622642661092982,
+  "e_k": 5.316187592135512,
+  "features_used_bf": {
+    "days_rest_bucket": "6+",
+    "lineup_obp_vs_hand": 0.3331348406785228,
+    "park_run_environment_factor": 1.0,
+    "pitcher_ip_per_start_30d_shrunk": 5.1757105943152455,
+    "pitcher_pitches_per_pa_30d": 3.90427135678392,
+    "pitcher_pitches_per_pa_season": 3.814070351758794,
+    "team_bullpen_short_hook_indicator": 0.0,
+    "weather_run_environment": 1.0
+  },
+  "features_used_kpa": {
+    "lineup_chase_rate": 0.26175657635297384,
+    "lineup_k_pct_vs_hand": 0.20392226088312052,
+    "lineup_zone_contact_pct": 0.8661583339116573,
+    "park_k_factor": 1.0,
+    "pitcher_chase_whiff_pct_30d": 0.41525722339675836,
+    "pitcher_csw_pct_30d": 0.2579908675799087,
+    "pitcher_k_pct_30d_blended": 0.23099316640298553,
+    "pitcher_k_pct_season_shrunk": 0.22670098764079816,
+    "pitcher_putaway_pitch_concentration": 0.3469387755102041,
+    "pitcher_velocity_trend_3starts": 0.02024481020570892,
+    "umpire_k_zone_factor": 1.0
+  },
+  "p_k_pa": 0.20748006606703154,
+  "skip_reason": null,
+  "skipped": false
+}
