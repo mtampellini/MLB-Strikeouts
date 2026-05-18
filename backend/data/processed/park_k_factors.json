@@ -1,36 +1,163 @@
 {
-  "_comment": "Park K-specific factors keyed by MLB venue_id. DIFFERENT from run factors -- foul territory and altitude affect breaking-ball movement, which drives venue-level K rate independent of overall offense. All values are 1.0 placeholders. Real derivation requires 3 seasons of pitcher-game K rates by venue with pitcher-quality controls (per Phase 3 spec: deferred until the derivation script lands in Phase 4+). HARD: missing venue here -> projection skips the pitcher (per spec).",
-  "year": 2025,
+  "_comment": "Park K-specific factors derived from 3-season Statcast pulls. Method: mean(observed_K / expected_K) per venue, where expected uses each pitcher's full-season K% as the baseline. EB shrunk toward 1.0 with k_prior=300 games.",
   "factors": {
-    "1": 1.0,
-    "2": 1.0,
-    "3": 1.0,
-    "4": 1.0,
-    "5": 1.0,
-    "7": 1.0,
-    "12": 1.0,
-    "14": 1.0,
-    "15": 1.0,
-    "17": 1.0,
-    "19": 1.0,
-    "22": 1.0,
-    "31": 1.0,
-    "32": 1.0,
-    "680": 1.0,
-    "2392": 1.0,
-    "2394": 1.0,
-    "2395": 1.0,
-    "2529": 1.0,
-    "2602": 1.0,
-    "2680": 1.0,
-    "2681": 1.0,
-    "2889": 1.0,
-    "3289": 1.0,
-    "3309": 1.0,
-    "3312": 1.0,
-    "3313": 1.0,
-    "4169": 1.0,
-    "4705": 1.0,
-    "5325": 1.0
-  }
+    "1": {
+      "factor": 1.0975,
+      "n_games": 2048,
+      "venue_name": "Angel Stadium"
+    },
+    "12": {
+      "factor": 1.0746,
+      "n_games": 2071,
+      "venue_name": "Tropicana Field"
+    },
+    "14": {
+      "factor": 0.9701,
+      "n_games": 2077,
+      "venue_name": "Rogers Centre"
+    },
+    "15": {
+      "factor": 0.9927,
+      "n_games": 2054,
+      "venue_name": "Chase Field"
+    },
+    "17": {
+      "factor": 1.0507,
+      "n_games": 2058,
+      "venue_name": "Wrigley Field"
+    },
+    "19": {
+      "factor": 1.0444,
+      "n_games": 2086,
+      "venue_name": "Coors Field"
+    },
+    "2": {
+      "factor": 1.0368,
+      "n_games": 2053,
+      "venue_name": "Oriole Park at Camden Yards"
+    },
+    "22": {
+      "factor": 1.0279,
+      "n_games": 2129,
+      "venue_name": "Dodger Stadium"
+    },
+    "2392": {
+      "factor": 1.016,
+      "n_games": 1996,
+      "venue_name": "Daikin Park"
+    },
+    "2394": {
+      "factor": 1.0354,
+      "n_games": 2012,
+      "venue_name": "Comerica Park"
+    },
+    "2395": {
+      "factor": 1.0245,
+      "n_games": 2033,
+      "venue_name": "Oracle Park"
+    },
+    "2529": {
+      "factor": 1.0855,
+      "n_games": 2060,
+      "venue_name": "Sutter Health Park (ATH 2023-24 Coliseum games merged here)"
+    },
+    "2602": {
+      "factor": 1.0584,
+      "n_games": 2119,
+      "venue_name": "Great American Ball Park"
+    },
+    "2680": {
+      "factor": 1.0292,
+      "n_games": 2055,
+      "venue_name": "Petco Park"
+    },
+    "2681": {
+      "factor": 1.0385,
+      "n_games": 2070,
+      "venue_name": "Citizens Bank Park"
+    },
+    "2889": {
+      "factor": 0.9811,
+      "n_games": 2014,
+      "venue_name": "Busch Stadium"
+    },
+    "3": {
+      "factor": 1.0155,
+      "n_games": 2075,
+      "venue_name": "Fenway Park"
+    },
+    "31": {
+      "factor": 1.0429,
+      "n_games": 2042,
+      "venue_name": "PNC Park"
+    },
+    "32": {
+      "factor": 1.0964,
+      "n_games": 2045,
+      "venue_name": "American Family Field"
+    },
+    "3289": {
+      "factor": 1.0468,
+      "n_games": 2090,
+      "venue_name": "Citi Field"
+    },
+    "3309": {
+      "factor": 0.9654,
+      "n_games": 2115,
+      "venue_name": "Nationals Park"
+    },
+    "3312": {
+      "factor": 1.0456,
+      "n_games": 2102,
+      "venue_name": "Target Field"
+    },
+    "3313": {
+      "factor": 1.0175,
+      "n_games": 2041,
+      "venue_name": "Yankee Stadium"
+    },
+    "4": {
+      "factor": 1.0543,
+      "n_games": 2085,
+      "venue_name": "Rate Field"
+    },
+    "4169": {
+      "factor": 1.0266,
+      "n_games": 2085,
+      "venue_name": "loanDepot park"
+    },
+    "4705": {
+      "factor": 1.0633,
+      "n_games": 2026,
+      "venue_name": "Truist Park"
+    },
+    "5": {
+      "factor": 1.0157,
+      "n_games": 2072,
+      "venue_name": "Progressive Field"
+    },
+    "5325": {
+      "factor": 1.0256,
+      "n_games": 2025,
+      "venue_name": "Globe Life Field"
+    },
+    "680": {
+      "factor": 1.1601,
+      "n_games": 2082,
+      "venue_name": "T-Mobile Park"
+    },
+    "7": {
+      "factor": 0.9859,
+      "n_games": 2064,
+      "venue_name": "Kauffman Stadium"
+    }
+  },
+  "generated_at": "2026-05-18T01:09:07+00:00",
+  "method": "shrunk_observed_over_expected_k_rate",
+  "seasons_used": [
+    2023,
+    2024,
+    2025
+  ],
+  "shrinkage_prior_games": 300
 }

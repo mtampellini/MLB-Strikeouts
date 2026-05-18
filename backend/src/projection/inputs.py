@@ -451,11 +451,34 @@ class ParkFactors:
 
     @classmethod
     def from_json(cls, path: Path | str) -> "ParkFactors":
+        """Load park factors.
+
+        Accepts two shapes:
+        1. Phase 3a placeholder: ``{"year": Y, "factors": {vid: float, ...}}``
+        2. Phase 4b derived:     ``{"seasons_used": [...], "factors":
+                                    {vid: {factor, n_games, venue_name}}}``
+
+        ``year`` is honored when present, else falls back to the latest season
+        in ``seasons_used`` (the operationally relevant one).
+        """
         blob = json.loads(Path(path).read_text(encoding="utf-8"))
-        return cls(
-            year=int(blob["year"]),
-            factors={int(k): float(v) for k, v in blob["factors"].items()},
-        )
+        if "year" in blob:
+            year = int(blob["year"])
+        elif "seasons_used" in blob and blob["seasons_used"]:
+            year = int(max(blob["seasons_used"]))
+        else:
+            year = 0  # unknown; loader caller decides if that matters
+
+        raw = blob["factors"]
+        factors: dict[int, float] = {}
+        for k, v in raw.items():
+            if isinstance(v, (int, float)):
+                factors[int(k)] = float(v)
+            elif isinstance(v, dict) and "factor" in v:
+                factors[int(k)] = float(v["factor"])
+            else:
+                raise ValueError(f"ParkFactors: unexpected entry for venue {k}: {v!r}")
+        return cls(year=year, factors=factors)
 
     def get(self, venue_id: int | None) -> float | None:
         if venue_id is None:

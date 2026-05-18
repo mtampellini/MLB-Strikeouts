@@ -364,18 +364,26 @@ def test_park_factors_loads_from_disk():
         / "data" / "processed" / "park_factors.json"
     )
     pf = ParkFactors.from_json(path)
-    assert pf.get(12) == 1.0     # Tropicana
+    # Tropicana baseline (Phase 3a run-factor placeholder still at 1.0).
+    assert pf.get(12) == 1.0
     assert pf.get(19) > 1.0      # Coors elevated
-    assert pf.get(999999) is None  # unknown -> None (caller skips pitcher)
+    assert pf.get(999999) is None
 
 
 def test_park_k_factors_loads_from_disk():
+    """Phase 4b park K factors are derived from 2023-25 Statcast. Tropicana
+    came in slightly K-promoting (~1.07); T-Mobile the highest (~1.16);
+    Nationals the lowest (~0.97). We assert structural shape and a sane
+    range rather than exact values which will drift with overnight rerun.
+    """
     path = (
         Path(__file__).resolve().parents[1]
         / "data" / "processed" / "park_k_factors.json"
     )
     pf = ParkFactors.from_json(path)
-    assert pf.get(12) == 1.0
+    trop = pf.get(12)
+    assert trop is not None
+    assert 0.85 <= trop <= 1.20
     assert pf.get(999999) is None
 
 

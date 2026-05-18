@@ -334,10 +334,15 @@ def test_lineup_chase_rate_happy_with_ooz_swings():
 
 
 def test_park_k_factor_known_venue():
+    """Tropicana (venue 12) is present in park_k_factors.json. With Phase 4b
+    derived factors the value is no longer exactly 1.0; just assert it's in
+    a sane range and not None.
+    """
     bundle = _make_bundle()
     value, miss = park_k_factor(bundle, _ctx())
     assert miss is None
-    assert value == 1.0
+    assert value is not None
+    assert 0.80 <= value <= 1.20
 
 
 def test_park_k_factor_unknown_venue_returns_none():
