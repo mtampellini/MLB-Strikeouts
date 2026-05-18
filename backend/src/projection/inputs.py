@@ -474,8 +474,18 @@ class ParkFactors:
         for k, v in raw.items():
             if isinstance(v, (int, float)):
                 factors[int(k)] = float(v)
-            elif isinstance(v, dict) and "factor" in v:
-                factors[int(k)] = float(v["factor"])
+            elif isinstance(v, dict):
+                # Prefer Phase 4b-v2's factor_combined (L/R-split schema),
+                # fall back to Phase 4b's single factor.
+                if "factor_combined" in v:
+                    factors[int(k)] = float(v["factor_combined"])
+                elif "factor" in v:
+                    factors[int(k)] = float(v["factor"])
+                else:
+                    raise ValueError(
+                        f"ParkFactors: entry for venue {k} has no "
+                        f"'factor_combined' or 'factor' key: {v!r}"
+                    )
             else:
                 raise ValueError(f"ParkFactors: unexpected entry for venue {k}: {v!r}")
         return cls(year=year, factors=factors)
