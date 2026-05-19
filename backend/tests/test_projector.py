@@ -269,8 +269,12 @@ def test_hydrated_bundle_uses_per_batter_path():
     assert result.skipped is False, f"unexpected skip: {result.skip_reason}"
     assert result.projection_method == "per_batter_with_tto"
     assert result.per_batter_breakdown is not None
-    # Lineup has 9 batters -> breakdown has 9 entries
-    assert len(result.per_batter_breakdown) == 9
+    # Lineup has 9 batters -> 9 per-batter entries plus the Step 3+ _meta
+    # block alongside them in the same dict.
+    batter_entries = {
+        k: v for k, v in result.per_batter_breakdown.items() if k != "_meta"
+    }
+    assert len(batter_entries) == 9
     assert result.archetype_used is not None
     assert result.pa_distribution_bf_used is not None
 
@@ -286,7 +290,8 @@ def test_per_batter_breakdown_sums_to_e_k():
         pytest.skip("not on per-batter path")
     total = sum(
         entry["expected_k_total"]
-        for entry in result.per_batter_breakdown.values()
+        for k, entry in result.per_batter_breakdown.items()
+        if k != "_meta"
     )
     assert abs(total - result.e_k) < 0.01
 
@@ -300,6 +305,8 @@ def test_per_batter_breakdown_by_tto_sums_to_batter_total():
     if result.per_batter_breakdown is None:
         pytest.skip("not on per-batter path")
     for bid, entry in result.per_batter_breakdown.items():
+        if bid == "_meta":
+            continue
         tto_sum = sum(t["expected_k"] for t in entry["by_tto"].values())
         # Each cell value is rounded to 4 dp; allow up to 2e-4 tolerance for
         # the sum (4 cells × 5e-5 worst-case rounding per cell).
@@ -319,7 +326,9 @@ def test_per_batter_top_of_order_has_more_pa_than_bottom():
     if result.per_batter_breakdown is None:
         pytest.skip("not on per-batter path")
     by_slot = {}
-    for entry in result.per_batter_breakdown.values():
+    for k, entry in result.per_batter_breakdown.items():
+        if k == "_meta":
+            continue
         by_slot[entry["batting_order_slot"]] = entry["expected_pa_total"]
     # Slot 1 PA >= slot 9 PA (strictly true for any BF in observed range,
     # since the lineup never fully turns over for the #9 hitter at typical

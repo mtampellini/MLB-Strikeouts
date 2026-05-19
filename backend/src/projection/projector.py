@@ -22,8 +22,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from .effective_k_rate import compute_effective_k_rate
 from .features_bf import BF_FLOOR, EBFResult, compute_e_bf
-from .features_kpa import PKPAResult, compute_p_k_pa
+from .features_kpa import (
+    PKPAResult,
+    _pitcher_k_pct,
+    compute_p_k_pa,
+    pitcher_csw_pct_season,
+)
 from .features_per_batter import (
     SENTINEL_NO_LEAGUE_AVGS_KEY,
     per_batter_k_pct_vs_hand,
@@ -246,16 +252,90 @@ def _compute_p_k_for_cell(
     }
 
 
+def _compute_pitcher_effective_k_rate(
+    bundle: ProjectionBundle, ctx: ProjectionContext,
+) -> tuple[float | None, dict]:
+    """Phase 4c-v2 Step 3/6: compute pitcher's effective K rate by blending
+    observed season K% with CSW-implied K% (Step 2 helper).
+
+    Returns ``(effective_k_rate, meta)``. The ``meta`` dict carries every
+    component of the blend so per_batter_breakdown can surface it for
+    debugging. ``effective_k_rate`` is None only when the pitcher has
+    neither observed K data nor a CSW% — caller falls back to the composed
+    P(K|PA) in that case.
+
+    When ctx lacks CSW-to-K params (legacy ctx), returns (None, meta)
+    immediately with confidence='legacy_no_csw_blend' so the caller knows
+    to use the legacy log5 input.
+    """
+    # Raw season K rate + n_PA from the bundle's statcast window.
+    k_count, pa_count = _pitcher_k_pct(bundle.pitcher.statcast_pitches_season)
+    observed_k = k_count / pa_count if pa_count > 0 else None
+
+    # Season CSW% (uses the prior-year shrinkage chain from features_kpa).
+    csw_val, _ = pitcher_csw_pct_season(bundle, ctx)
+
+    if ctx.csw_to_k_intercept is None or ctx.csw_to_k_slope is None:
+        # Legacy ctx: signal to caller via None.
+        return None, {
+            "pitcher_effective_k_rate": None,
+            "pitcher_observed_k_rate": observed_k,
+            "pitcher_observed_n_pa": int(pa_count),
+            "pitcher_csw_pct": csw_val,
+            "pitcher_csw_implied_k_rate": None,
+            "blend_weight_observed": None,
+            "blend_confidence": "legacy_no_csw_blend",
+        }
+
+    result = compute_effective_k_rate(
+        observed_k_rate=observed_k,
+        observed_n_pa=int(pa_count),
+        csw_pct=csw_val,
+        csw_to_k_intercept=ctx.csw_to_k_intercept,
+        csw_to_k_slope=ctx.csw_to_k_slope,
+    )
+    if result is None:
+        # Pitcher has neither observed K data nor CSW data — caller will
+        # fall back to composed P(K|PA).
+        return None, {
+            "pitcher_effective_k_rate": None,
+            "pitcher_observed_k_rate": observed_k,
+            "pitcher_observed_n_pa": int(pa_count),
+            "pitcher_csw_pct": csw_val,
+            "pitcher_csw_implied_k_rate": None,
+            "blend_weight_observed": None,
+            "blend_confidence": "no_data_available",
+        }
+
+    return result.effective_k_rate, {
+        "pitcher_effective_k_rate": round(result.effective_k_rate, 4),
+        "pitcher_observed_k_rate": (
+            round(result.observed_k_rate, 4) if result.observed_k_rate is not None else None
+        ),
+        "pitcher_observed_n_pa": result.observed_n_pa,
+        "pitcher_csw_pct": round(csw_val, 4) if csw_val is not None else None,
+        "pitcher_csw_implied_k_rate": (
+            round(result.csw_implied_k_rate, 4)
+            if result.csw_implied_k_rate is not None else None
+        ),
+        "blend_weight_observed": round(result.blend_weight_observed, 4),
+        "blend_confidence": result.confidence,
+    }
+
+
 def _project_per_batter(
     bundle: ProjectionBundle,
     ctx: ProjectionContext,
     e_bf: float,
     pitcher_k_rate: float,
     archetype: str,
+    blend_meta: dict | None = None,
 ) -> tuple[float, dict, int]:
     """Run the per-(batter, TTO) projection loop.
 
-    Returns (e_k_total, per_batter_breakdown, bf_used).
+    Returns (e_k_total, per_batter_breakdown, bf_used). When ``blend_meta``
+    is provided (Step 3+), it surfaces in the breakdown under the ``_meta``
+    key alongside the per-batter entries.
     """
     pa_dist = bundle.pa_distribution
     tto_table = bundle.tto_multipliers
@@ -315,6 +395,9 @@ def _project_per_batter(
         }
         e_k_total += expected_k_total
 
+    if blend_meta is not None:
+        per_batter_breakdown["_meta"] = blend_meta
+
     return e_k_total, per_batter_breakdown, bf_used
 
 
@@ -372,13 +455,28 @@ def project(
 
     if use_new_path:
         archetype = _resolve_archetype(bundle)
+
+        # Phase 4c-v2 Step 3: compute pitcher's effective K rate (CSW-blended)
+        # once per projection. If the ctx carries CSW-to-K params AND the
+        # pitcher has at least one of (observed K, CSW%), use the effective
+        # rate as the log5 pitcher input. Otherwise fall back to the
+        # composed P(K|PA) (legacy Phase 3-v2c-iv behavior).
+        effective_k, blend_meta = _compute_pitcher_effective_k_rate(bundle, ctx)
+        if effective_k is not None:
+            pitcher_k_for_log5 = effective_k
+        else:
+            pitcher_k_for_log5 = kpa.p_k_pa
+            blend_meta["fallback_to_composed_p_k_pa"] = True
+
         e_k, per_batter_breakdown, bf_used = _project_per_batter(
-            bundle, ctx, bf.e_bf, kpa.p_k_pa, archetype,
+            bundle, ctx, bf.e_bf, pitcher_k_for_log5, archetype,
+            blend_meta=blend_meta,
         )
         # PA-weighted p_k_pa surface (so the existing p_k_pa field is still
-        # meaningful in the per-batter path).
+        # meaningful in the per-batter path). Exclude the _meta entry.
         total_pa = sum(
-            entry["expected_pa_total"] for entry in per_batter_breakdown.values()
+            entry["expected_pa_total"]
+            for k, entry in per_batter_breakdown.items() if k != "_meta"
         )
         avg_p_k = e_k / total_pa if total_pa > 0 else kpa.p_k_pa
 

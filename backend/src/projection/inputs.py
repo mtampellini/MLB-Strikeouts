@@ -981,10 +981,17 @@ class ProjectionContext:
     park_run_factors: ParkFactors
     park_k_factors: ParkFactors
     umpire_k_factors: UmpireKFactors
+    # Phase 4c-v2 Step 3/6: additive. Default None for backward compat —
+    # callers that build a minimal ctx (older tests, etc.) still work; the
+    # projector falls back to the composed P(K|PA) for its log5 input when
+    # these are None.
+    csw_to_k_intercept: float | None = None
+    csw_to_k_slope: float | None = None
 
     @classmethod
     def from_default_paths(cls) -> "ProjectionContext":
         processed = Path(__file__).resolve().parents[2] / "data" / "processed"
+        csw_intercept, csw_slope = _try_load_csw_to_k(processed)
         return cls(
             league_avgs=LeagueAverages.from_json(
                 processed / "league_averages_2025.json"
@@ -994,7 +1001,47 @@ class ProjectionContext:
             umpire_k_factors=UmpireKFactors.from_json(
                 processed / "umpire_k_factors.json"
             ),
+            csw_to_k_intercept=csw_intercept,
+            csw_to_k_slope=csw_slope,
         )
+
+
+# Module-level guard so the legacy-fallback warning fires once, not per call.
+_CSW_LOAD_WARNED = False
+
+
+def _try_load_csw_to_k(processed_dir: Path) -> tuple[float | None, float | None]:
+    """Load the CSW-to-K intercept/slope from processed_dir, returning
+    (None, None) with a one-shot warning if the file is missing.
+
+    Phase 4c-v2 Step 3 wiring — this preserves backward compat for older
+    contexts and test fixtures that built ctx before the CSW relationship
+    existed.
+    """
+    global _CSW_LOAD_WARNED
+    path = processed_dir / "csw_to_k_relationship.json"
+    if not path.exists():
+        if not _CSW_LOAD_WARNED:
+            logger.warning(
+                "CSW-to-K relationship not loaded (file %s missing); "
+                "projector will use composed P(K|PA) for log5 (legacy behavior)",
+                path,
+            )
+            _CSW_LOAD_WARNED = True
+        return None, None
+    try:
+        blob = json.loads(path.read_text(encoding="utf-8"))
+        model = blob.get("model") or {}
+        return float(model.get("intercept")), float(model.get("slope"))
+    except (OSError, ValueError, TypeError) as exc:
+        if not _CSW_LOAD_WARNED:
+            logger.warning(
+                "CSW-to-K relationship at %s failed to parse (%s); "
+                "projector will use composed P(K|PA) for log5",
+                path, exc,
+            )
+            _CSW_LOAD_WARNED = True
+        return None, None
 
 
 # ---- Validators ------------------------------------------------------------
