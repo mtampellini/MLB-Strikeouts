@@ -1,0 +1,92 @@
+{
+  "generated_at": "2026-05-19T20:25:08Z",
+  "alpha": 0.001001,
+  "per_line_in_sample": {
+    "3.5": {
+      "predicted_p_over": 0.7712,
+      "observed_p_over": 0.7834,
+      "deviation": 0.0122,
+      "n_games": 2147
+    },
+    "4.5": {
+      "predicted_p_over": 0.6233,
+      "observed_p_over": 0.6386,
+      "deviation": 0.0152,
+      "n_games": 2147
+    },
+    "5.5": {
+      "predicted_p_over": 0.4685,
+      "observed_p_over": 0.4793,
+      "deviation": 0.0108,
+      "n_games": 2147
+    },
+    "6.5": {
+      "predicted_p_over": 0.3281,
+      "observed_p_over": 0.3186,
+      "deviation": -0.0095,
+      "n_games": 2147
+    },
+    "7.5": {
+      "predicted_p_over": 0.2149,
+      "observed_p_over": 0.1984,
+      "deviation": -0.0165,
+      "n_games": 2147
+    },
+    "8.5": {
+      "predicted_p_over": 0.1322,
+      "observed_p_over": 0.109,
+      "deviation": -0.0232,
+      "n_games": 2147
+    },
+    "9.5": {
+      "predicted_p_over": 0.0768,
+      "observed_p_over": 0.0526,
+      "deviation": -0.0241,
+      "n_games": 2147
+    }
+  },
+  "per_line_out_of_sample": {
+    "3.5": {
+      "predicted_p_over": 0.7458,
+      "observed_p_over": 0.7502,
+      "deviation": 0.0044,
+      "n_games": 3415
+    },
+    "4.5": {
+      "predicted_p_over": 0.5913,
+      "observed_p_over": 0.5944,
+      "deviation": 0.0032,
+      "n_games": 3415
+    },
+    "5.5": {
+      "predicted_p_over": 0.4347,
+      "observed_p_over": 0.4202,
+      "deviation": -0.0145,
+      "n_games": 3415
+    },
+    "6.5": {
+      "predicted_p_over": 0.2974,
+      "observed_p_over": 0.2732,
+      "deviation": -0.0242,
+      "n_games": 3415
+    },
+    "7.5": {
+      "predicted_p_over": 0.1901,
+      "observed_p_over": 0.1719,
+      "deviation": -0.0183,
+      "n_games": 3415
+    },
+    "8.5": {
+      "predicted_p_over": 0.1142,
+      "observed_p_over": 0.0952,
+      "deviation": -0.019,
+      "n_games": 3415
+    },
+    "9.5": {
+      "predicted_p_over": 0.0647,
+      "observed_p_over": 0.0495,
+      "deviation": -0.0152,
+      "n_games": 3415
+    }
+  }
+}

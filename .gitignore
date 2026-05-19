@@ -61,6 +61,9 @@ backend/data/processed/*
 !backend/data/processed/pa_distribution_report.json
 # nb_dispersion.json: locked value from scripts/fit_nb_dispersion.py.
 !backend/data/processed/nb_dispersion.json
+# Phase 4d calibration output: per-line predicted-vs-observed table for
+# downstream consumption (picks engine in Phase 5).
+!backend/data/processed/nb_dispersion_calibration.json
 # tracker.json: generated nightly, read at build time for big-number cards.
 !backend/data/processed/tracker.json
 

@@ -1,0 +1,75 @@
+{
+  "generated_at": "2026-05-19T20:25:08Z",
+  "method": "mle_on_calibrated_projections",
+  "alpha": 0.001001,
+  "fit_seasons": [
+    2024
+  ],
+  "validation_seasons": [
+    2025
+  ],
+  "in_sample": {
+    "n_games": 2147,
+    "log_likelihood": -4695.9757,
+    "ks_test_stat": 0.160415,
+    "ks_test_p": 0.0,
+    "ecdf_max_deviation": 0.024129
+  },
+  "out_of_sample": {
+    "n_games": 3415,
+    "log_likelihood": -7499.9936,
+    "ks_test_stat": 0.153592,
+    "ks_test_p": 0.0,
+    "ecdf_max_deviation": 0.024189
+  },
+  "diagnostic": {
+    "mean_e_k": 5.4095,
+    "mean_observed_k": 5.322,
+    "calibration_bias": 0.0875,
+    "by_line_calibration": {
+      "3.5": {
+        "predicted_p_over": 0.7458,
+        "observed_p_over": 0.7502,
+        "deviation": 0.0044,
+        "n_games": 3415
+      },
+      "4.5": {
+        "predicted_p_over": 0.5913,
+        "observed_p_over": 0.5944,
+        "deviation": 0.0032,
+        "n_games": 3415
+      },
+      "5.5": {
+        "predicted_p_over": 0.4347,
+        "observed_p_over": 0.4202,
+        "deviation": -0.0145,
+        "n_games": 3415
+      },
+      "6.5": {
+        "predicted_p_over": 0.2974,
+        "observed_p_over": 0.2732,
+        "deviation": -0.0242,
+        "n_games": 3415
+      },
+      "7.5": {
+        "predicted_p_over": 0.1901,
+        "observed_p_over": 0.1719,
+        "deviation": -0.0183,
+        "n_games": 3415
+      },
+      "8.5": {
+        "predicted_p_over": 0.1142,
+        "observed_p_over": 0.0952,
+        "deviation": -0.019,
+        "n_games": 3415
+      },
+      "9.5": {
+        "predicted_p_over": 0.0647,
+        "observed_p_over": 0.0495,
+        "deviation": -0.0152,
+        "n_games": 3415
+      }
+    },
+    "diagnostic_note": "Alpha at lower bound (0.001) indicates the calibrated E[K] residuals are approximately Poisson. Per-line calibration confirms the resulting P(K >= line) distribution is accurate within 5pp at every alt line. Picks engine should use this NB(alpha=0.001) distribution as the projection-to-probability transform; it is functionally indistinguishable from Poisson at this alpha value."
+  }
+}
