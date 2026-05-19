@@ -22,7 +22,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from .effective_k_rate import compute_effective_k_rate
+from .effective_k_rate import compute_effective_k_rate, load_csw_to_k_relationship
 from .features_bf import BF_FLOOR, EBFResult, compute_e_bf
 from .features_kpa import (
     PKPAResult,
@@ -252,6 +252,30 @@ def _compute_p_k_for_cell(
     }
 
 
+def _resolve_csw_to_k_params(
+    bundle: ProjectionBundle, ctx: ProjectionContext,
+) -> tuple[float, float] | None:
+    """Phase 4c-v2 Step 4/6: priority chain for the CSW-to-K parameters.
+
+    1. ``bundle.csw_to_k_relationship`` (portable / bundle-embedded)
+    2. ``ctx.csw_to_k_intercept`` + ``ctx.csw_to_k_slope`` (Step 3 ctx-loaded)
+    3. ``load_csw_to_k_relationship()`` (live disk file)
+    4. ``None`` → caller falls back to the legacy log5 path
+
+    Step 4's bundle-embedded path lets historical fits and offline pipelines
+    carry the model parameters with the data they were generated against.
+    """
+    rel = bundle.csw_to_k_relationship
+    if rel is not None:
+        return rel.intercept, rel.slope
+    if ctx.csw_to_k_intercept is not None and ctx.csw_to_k_slope is not None:
+        return ctx.csw_to_k_intercept, ctx.csw_to_k_slope
+    try:
+        return load_csw_to_k_relationship()
+    except FileNotFoundError:
+        return None
+
+
 def _compute_pitcher_effective_k_rate(
     bundle: ProjectionBundle, ctx: ProjectionContext,
 ) -> tuple[float | None, dict]:
@@ -275,8 +299,9 @@ def _compute_pitcher_effective_k_rate(
     # Season CSW% (uses the prior-year shrinkage chain from features_kpa).
     csw_val, _ = pitcher_csw_pct_season(bundle, ctx)
 
-    if ctx.csw_to_k_intercept is None or ctx.csw_to_k_slope is None:
-        # Legacy ctx: signal to caller via None.
+    params = _resolve_csw_to_k_params(bundle, ctx)
+    if params is None:
+        # No CSW-to-K params anywhere — signal caller to use legacy log5 path.
         return None, {
             "pitcher_effective_k_rate": None,
             "pitcher_observed_k_rate": observed_k,
@@ -286,13 +311,14 @@ def _compute_pitcher_effective_k_rate(
             "blend_weight_observed": None,
             "blend_confidence": "legacy_no_csw_blend",
         }
+    intercept, slope = params
 
     result = compute_effective_k_rate(
         observed_k_rate=observed_k,
         observed_n_pa=int(pa_count),
         csw_pct=csw_val,
-        csw_to_k_intercept=ctx.csw_to_k_intercept,
-        csw_to_k_slope=ctx.csw_to_k_slope,
+        csw_to_k_intercept=intercept,
+        csw_to_k_slope=slope,
     )
     if result is None:
         # Pitcher has neither observed K data nor CSW data — caller will

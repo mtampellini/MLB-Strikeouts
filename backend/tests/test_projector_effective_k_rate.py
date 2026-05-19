@@ -36,17 +36,45 @@ def _ctx_without_csw() -> ProjectionContext:
 # ---- Legacy ctx (no CSW-to-K params) ---------------------------------------
 
 
-def test_legacy_ctx_uses_composed_p_k_pa(monkeypatch):
-    """When ctx has no CSW-to-K params, the projector falls back to the
-    composed P(K|PA) for log5 (Phase 3-v2c-iv behavior). _meta should
-    record confidence='legacy_no_csw_blend' and a fallback flag."""
+def test_legacy_ctx_falls_back_to_disk_step4(monkeypatch):
+    """Step 4 changed the resolver priority chain to: bundle > ctx > disk
+    > None. With a ctx that has no CSW params, the projector now falls
+    back to the disk file (csw_to_k_relationship.json), NOT immediately
+    to the legacy log5 path. The legacy path only fires when all three
+    sources are unavailable."""
     if not PHASE3_V2C_I_SAMPLE.exists():
         pytest.skip(f"{PHASE3_V2C_I_SAMPLE} not present")
     ctx = _ctx_without_csw()
     bundle = ProjectionBundle.from_json(PHASE3_V2C_I_SAMPLE)
+    # Bundle from Phase 3-v2c-i has no csw_to_k_relationship field, so
+    # the resolver falls to ctx (empty) then disk (file exists).
+    assert bundle.csw_to_k_relationship is None
     result = project(bundle, ctx)
     assert result.skipped is False
-    assert result.projection_method == "per_batter_with_tto"
+    meta = result.per_batter_breakdown.get("_meta")
+    assert meta is not None
+    # Disk fallback fired → blend is real, not legacy.
+    assert meta["blend_confidence"] != "legacy_no_csw_blend"
+    assert meta.get("fallback_to_composed_p_k_pa") is not True
+
+
+def test_truly_legacy_path_when_all_three_sources_missing(monkeypatch):
+    """When the bundle has no field, ctx has no params, AND the disk
+    file is unreachable, the projector falls to the legacy composed
+    P(K|PA) for log5."""
+    if not PHASE3_V2C_I_SAMPLE.exists():
+        pytest.skip(f"{PHASE3_V2C_I_SAMPLE} not present")
+    # Monkeypatch the disk loader to simulate a missing file.
+    import src.projection.projector as projector_mod
+    monkeypatch.setattr(
+        projector_mod, "load_csw_to_k_relationship",
+        lambda: (_ for _ in ()).throw(FileNotFoundError("simulated")),
+    )
+    ctx = _ctx_without_csw()
+    bundle = ProjectionBundle.from_json(PHASE3_V2C_I_SAMPLE)
+    assert bundle.csw_to_k_relationship is None
+    result = project(bundle, ctx)
+    assert result.skipped is False
     meta = result.per_batter_breakdown.get("_meta")
     assert meta is not None
     assert meta["blend_confidence"] == "legacy_no_csw_blend"
@@ -129,16 +157,48 @@ def test_helper_returns_none_for_pitcher_with_no_data(synthetic_bundle_no_pitche
     assert meta["blend_confidence"] in ("no_data_available", "legacy_no_csw_blend")
 
 
-def test_helper_legacy_ctx_returns_none_immediately():
-    """When ctx has no CSW-to-K params, the helper short-circuits to
-    (None, legacy meta) regardless of pitcher data."""
+def test_helper_legacy_path_when_all_sources_missing(monkeypatch):
+    """When bundle has no field, ctx has no params, AND disk is mocked
+    unreachable, the helper returns (None, legacy meta)."""
     if not PHASE3_V2C_I_SAMPLE.exists():
         pytest.skip(f"{PHASE3_V2C_I_SAMPLE} not present")
+    import src.projection.projector as projector_mod
+    monkeypatch.setattr(
+        projector_mod, "load_csw_to_k_relationship",
+        lambda: (_ for _ in ()).throw(FileNotFoundError("simulated")),
+    )
     ctx = _ctx_without_csw()
     bundle = ProjectionBundle.from_json(PHASE3_V2C_I_SAMPLE)
     eff, meta = _compute_pitcher_effective_k_rate(bundle, ctx)
     assert eff is None
     assert meta["blend_confidence"] == "legacy_no_csw_blend"
+
+
+def test_helper_uses_bundle_field_when_present(monkeypatch):
+    """Step 4 priority: when bundle.csw_to_k_relationship is populated,
+    the helper uses it even if ctx is also populated (bundle wins)."""
+    if not PHASE3_V2C_I_SAMPLE.exists():
+        pytest.skip(f"{PHASE3_V2C_I_SAMPLE} not present")
+    from dataclasses import replace
+    from src.projection.inputs import CswToKRelationship
+
+    bundle = ProjectionBundle.from_json(PHASE3_V2C_I_SAMPLE)
+    # Inject a deliberately-different relationship into the bundle so we
+    # can distinguish it from ctx / disk by the meta output.
+    bundle = replace(
+        bundle,
+        csw_to_k_relationship=CswToKRelationship(
+            intercept=0.0, slope=1.0, r_squared=0.6,
+            method="weighted_linear_regression_csw_to_k",
+        ),
+    )
+    ctx = _ctx_with_csw()
+    eff, meta = _compute_pitcher_effective_k_rate(bundle, ctx)
+    assert eff is not None
+    # csw_implied_k = 0.0 + 1.0 * csw_pct = csw_pct itself
+    csw_val = meta["pitcher_csw_pct"]
+    expected_csw_implied = round(csw_val, 4)
+    assert meta["pitcher_csw_implied_k_rate"] == expected_csw_implied
 
 
 # ---- Round-trip through dict ----------------------------------------------

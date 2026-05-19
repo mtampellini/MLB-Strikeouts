@@ -550,6 +550,7 @@ def _build_phase3_v2c_i_fields(
     """Read the four Phase 3-v2c-i static data files and produce the embedded
     additive sections. Missing files yield no keys (legacy bundle shape)."""
     from src.projection.inputs import (
+        CswToKRelationship,
         PADistribution,
         ParkKFactorsByHand,
         PitcherArchetype,
@@ -579,6 +580,11 @@ def _build_phase3_v2c_i_fields(
     pa_dist_path = PROCESSED_DIR / "pa_distribution_by_bf.json"
     if pa_dist_path.exists():
         out["pa_distribution"] = PADistribution.from_json(pa_dist_path).to_dict()
+
+    csw_to_k_path = PROCESSED_DIR / "csw_to_k_relationship.json"
+    csw_rel = CswToKRelationship.from_relationship_file(csw_to_k_path)
+    if csw_rel is not None:
+        out["csw_to_k_relationship"] = csw_rel.to_dict()
 
     return out
 

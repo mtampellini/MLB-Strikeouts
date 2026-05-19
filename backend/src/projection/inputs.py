@@ -600,6 +600,56 @@ class PADistributionCell:
 
 
 @dataclass(frozen=True)
+class CswToKRelationship:
+    """Phase 4c-v2 Step 4: linear coefficients mapping pitcher CSW% to
+    expected K%. Produced by :mod:`scripts.derive_csw_to_k_relationship`
+    and consumed by :mod:`src.projection.effective_k_rate`.
+
+    Bundle-embedded so historical/offline pipelines can carry the model
+    parameters with the data and not depend on the live disk file.
+    """
+
+    intercept: float
+    slope: float
+    r_squared: float
+    method: str
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "CswToKRelationship":
+        return cls(
+            intercept=float(d["intercept"]),
+            slope=float(d["slope"]),
+            r_squared=float(d["r_squared"]),
+            method=str(d["method"]),
+        )
+
+    @classmethod
+    def from_relationship_file(cls, path: Path | str) -> "CswToKRelationship | None":
+        """Load directly from the live ``csw_to_k_relationship.json`` file."""
+        p = Path(path)
+        if not p.exists():
+            return None
+        blob = json.loads(p.read_text(encoding="utf-8"))
+        model = blob.get("model") or {}
+        if "intercept" not in model or "slope" not in model:
+            return None
+        return cls(
+            intercept=float(model["intercept"]),
+            slope=float(model["slope"]),
+            r_squared=float(model.get("r_squared") or 0.0),
+            method=str(blob.get("method") or ""),
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "intercept": self.intercept,
+            "slope": self.slope,
+            "r_squared": self.r_squared,
+            "method": self.method,
+        }
+
+
+@dataclass(frozen=True)
 class PADistribution:
     """Full PA distribution lookup table from Phase 3-v2c-0.
 
@@ -687,6 +737,9 @@ class ProjectionBundle:
     tto_multipliers: "TTOMultipliers | None" = None
     park_k_factors_by_hand: "ParkKFactorsByHand | None" = None
     pa_distribution: "PADistribution | None" = None
+    # Phase 4c-v2 Step 4 additive field. Default None so legacy bundles
+    # (predating Phase 4c-v2 Step 1) continue to load.
+    csw_to_k_relationship: "CswToKRelationship | None" = None
 
     # ---- Loader -----------------------------------------------------------
 
@@ -719,6 +772,10 @@ class ProjectionBundle:
         )
         pa_blob = blob.get("pa_distribution")
         pa_distribution = PADistribution.from_dict(pa_blob) if pa_blob else None
+        csw_blob = blob.get("csw_to_k_relationship")
+        csw_to_k_relationship = (
+            CswToKRelationship.from_dict(csw_blob) if csw_blob else None
+        )
 
         return cls(
             metadata=BundleMetadata.from_dict(blob["metadata"]),
@@ -730,6 +787,7 @@ class ProjectionBundle:
             tto_multipliers=tto_multipliers,
             park_k_factors_by_hand=park_k_factors_by_hand,
             pa_distribution=pa_distribution,
+            csw_to_k_relationship=csw_to_k_relationship,
         )
 
     @classmethod
@@ -741,6 +799,7 @@ class ProjectionBundle:
         tto_path: "Path | str | None" = None,
         park_k_factors_path: "Path | str | None" = None,
         pa_distribution_path: "Path | str | None" = None,
+        csw_to_k_path: "Path | str | None" = None,
     ) -> "ProjectionBundle":
         """Load a bundle and ALSO populate the four Phase 3-v2c-i extension
         fields from the static data files. Used by build_sample_bundle so
@@ -782,6 +841,10 @@ class ProjectionBundle:
             except FileNotFoundError:
                 pa_distribution = None
 
+        csw_rel = bundle.csw_to_k_relationship
+        if csw_rel is None and csw_to_k_path is not None:
+            csw_rel = CswToKRelationship.from_relationship_file(csw_to_k_path)
+
         # Re-construct with the populated fields (frozen dataclass)
         from dataclasses import replace
         return replace(
@@ -790,6 +853,7 @@ class ProjectionBundle:
             tto_multipliers=tto_multipliers,
             park_k_factors_by_hand=park_k,
             pa_distribution=pa_distribution,
+            csw_to_k_relationship=csw_rel,
         )
 
     def to_dict(self) -> dict:
@@ -808,6 +872,8 @@ class ProjectionBundle:
             out["park_k_factors_by_hand"] = self.park_k_factors_by_hand.to_dict()
         if self.pa_distribution is not None:
             out["pa_distribution"] = self.pa_distribution.to_dict()
+        if self.csw_to_k_relationship is not None:
+            out["csw_to_k_relationship"] = self.csw_to_k_relationship.to_dict()
         return out
 
 

@@ -126,8 +126,41 @@ def validate(bundle: dict) -> list[str]:
         issues.extend(_check_park_k_factors_by_hand(bundle["park_k_factors_by_hand"]))
     if bundle.get("pa_distribution") is not None:
         issues.extend(_check_pa_distribution(bundle["pa_distribution"]))
+    if bundle.get("csw_to_k_relationship") is not None:
+        issues.extend(_check_csw_to_k_relationship(bundle["csw_to_k_relationship"]))
     issues.extend(_check_no_unsupported_types(bundle, path="$"))
     return issues
+
+
+CSW_SLOPE_MIN = 0.0
+CSW_SLOPE_MAX = 5.0
+CSW_EXPECTED_METHOD = "weighted_linear_regression_csw_to_k"
+
+
+def _check_csw_to_k_relationship(blob: Any) -> list[str]:
+    out: list[str] = []
+    if not isinstance(blob, dict):
+        return ["csw_to_k_relationship: must be dict"]
+    for k in ("intercept", "slope", "r_squared"):
+        v = blob.get(k)
+        if not isinstance(v, (int, float)):
+            out.append(f"csw_to_k_relationship.{k}: must be numeric")
+    slope = blob.get("slope")
+    if isinstance(slope, (int, float)) and not (CSW_SLOPE_MIN < slope < CSW_SLOPE_MAX):
+        out.append(
+            f"csw_to_k_relationship.slope: {slope} outside "
+            f"({CSW_SLOPE_MIN}, {CSW_SLOPE_MAX})"
+        )
+    r2 = blob.get("r_squared")
+    if isinstance(r2, (int, float)) and not (0.0 < r2 < 1.0):
+        out.append(f"csw_to_k_relationship.r_squared: {r2} outside (0, 1)")
+    method = blob.get("method")
+    if not isinstance(method, str) or method != CSW_EXPECTED_METHOD:
+        out.append(
+            f"csw_to_k_relationship.method: expected {CSW_EXPECTED_METHOD!r}, "
+            f"got {method!r}"
+        )
+    return out
 
 
 def _check_pitcher_archetype(blob: Any) -> list[str]:

@@ -18,6 +18,7 @@ import pytest
 
 from src.projection.inputs import (
     ARCHETYPE_CONFIDENCE_VALUES,
+    CswToKRelationship,
     PADistribution,
     PADistributionCell,
     ParkKFactorsByHand,
@@ -467,3 +468,112 @@ def test_pa_distribution_cell_dataclass_shape():
     blob = cell.to_dict()
     back = PADistributionCell.from_dict(blob)
     assert back == cell
+
+
+# ---- Phase 4c-v2 Step 4: csw_to_k_relationship -----------------------------
+
+
+CSW_TO_K_PATH = PROCESSED_DIR / "csw_to_k_relationship.json"
+
+
+def test_csw_to_k_relationship_dataclass_roundtrip():
+    rel = CswToKRelationship(
+        intercept=-0.22, slope=1.63, r_squared=0.6,
+        method="weighted_linear_regression_csw_to_k",
+    )
+    blob = rel.to_dict()
+    back = CswToKRelationship.from_dict(blob)
+    assert back == rel
+
+
+def test_csw_to_k_relationship_loads_from_live_file():
+    """Step 1's live file should load into the dataclass cleanly."""
+    if not CSW_TO_K_PATH.exists():
+        pytest.skip(f"{CSW_TO_K_PATH} not present")
+    rel = CswToKRelationship.from_relationship_file(CSW_TO_K_PATH)
+    assert rel is not None
+    assert abs(rel.intercept - (-0.2209)) < 1e-3
+    assert abs(rel.slope - 1.6346) < 1e-3
+    assert 0.0 < rel.r_squared < 1.0
+    assert rel.method == "weighted_linear_regression_csw_to_k"
+
+
+def test_csw_to_k_relationship_missing_file_returns_none(tmp_path):
+    missing = tmp_path / "nope.json"
+    assert CswToKRelationship.from_relationship_file(missing) is None
+
+
+def test_legacy_bundle_loads_without_csw_to_k(legacy_bundle_dict):
+    """A bundle predating Step 4 (no csw_to_k_relationship key) loads
+    with the field as None — no error."""
+    bundle = ProjectionBundle.from_dict(legacy_bundle_dict)
+    assert bundle.csw_to_k_relationship is None
+
+
+def test_hydrated_bundle_populates_csw_to_k(legacy_bundle_dict):
+    """from_dict_with_static_data with csw_to_k_path populates the field."""
+    bundle = ProjectionBundle.from_dict_with_static_data(
+        legacy_bundle_dict,
+        csw_to_k_path=CSW_TO_K_PATH,
+    )
+    if not CSW_TO_K_PATH.exists():
+        # Skip if the live file isn't available
+        assert bundle.csw_to_k_relationship is None
+        return
+    assert bundle.csw_to_k_relationship is not None
+    assert bundle.csw_to_k_relationship.slope > 1.0
+
+
+def test_bundle_to_dict_round_trips_csw_to_k(legacy_bundle_dict):
+    """Bundle -> to_dict -> from_dict preserves csw_to_k_relationship."""
+    if not CSW_TO_K_PATH.exists():
+        pytest.skip(f"{CSW_TO_K_PATH} not present")
+    bundle = ProjectionBundle.from_dict_with_static_data(
+        legacy_bundle_dict,
+        csw_to_k_path=CSW_TO_K_PATH,
+    )
+    assert bundle.csw_to_k_relationship is not None
+    blob = bundle.to_dict()
+    assert "csw_to_k_relationship" in blob
+    bundle2 = ProjectionBundle.from_dict(blob)
+    assert bundle2.csw_to_k_relationship == bundle.csw_to_k_relationship
+
+
+def test_validator_passes_on_valid_csw_to_k(legacy_bundle_dict):
+    from scripts.bundle_validator import validate
+    blob = copy.deepcopy(legacy_bundle_dict)
+    blob["csw_to_k_relationship"] = {
+        "intercept": -0.22, "slope": 1.63, "r_squared": 0.6,
+        "method": "weighted_linear_regression_csw_to_k",
+    }
+    issues = validate(blob)
+    assert issues == [], f"unexpected issues: {issues}"
+
+
+def test_validator_passes_when_csw_to_k_absent(legacy_bundle_dict):
+    from scripts.bundle_validator import validate
+    assert "csw_to_k_relationship" not in legacy_bundle_dict
+    issues = validate(legacy_bundle_dict)
+    assert issues == []
+
+
+def test_validator_flags_slope_out_of_range(legacy_bundle_dict):
+    from scripts.bundle_validator import validate
+    blob = copy.deepcopy(legacy_bundle_dict)
+    blob["csw_to_k_relationship"] = {
+        "intercept": -0.22, "slope": 10.0, "r_squared": 0.6,
+        "method": "weighted_linear_regression_csw_to_k",
+    }
+    issues = validate(blob)
+    assert any("slope" in i for i in issues)
+
+
+def test_validator_flags_wrong_method(legacy_bundle_dict):
+    from scripts.bundle_validator import validate
+    blob = copy.deepcopy(legacy_bundle_dict)
+    blob["csw_to_k_relationship"] = {
+        "intercept": -0.22, "slope": 1.63, "r_squared": 0.6,
+        "method": "polynomial_csw_to_k_v2",
+    }
+    issues = validate(blob)
+    assert any("method" in i for i in issues)
