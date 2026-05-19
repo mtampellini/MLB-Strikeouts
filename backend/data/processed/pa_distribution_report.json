@@ -1,0 +1,170 @@
+{
+  "generated_at": "2026-05-19T00:57:45Z",
+  "modal_bf": 23,
+  "modal_bf_n_games": 1620,
+  "empirical_heatmap_modal_bf": "Empirical distribution at modal BF=23 (n_games=1620):\nslot       TTO_1     TTO_2     TTO_3     TTO_4     total\n--------------------------------------------------------\n1          1.000     1.000     1.000     0.000     3.000\n2          1.000     1.000     1.000     0.000     3.000\n3          1.000     1.000     1.000     0.000     3.000\n4          1.000     1.000     1.000     0.000     3.000\n5          1.000     1.000     1.000     0.000     3.000\n6          1.000     1.000     0.000     0.000     2.000\n7          1.000     1.000     0.000     0.000     2.000\n8          1.000     1.000     0.000     0.000     2.000\n9          1.000     1.000     0.000     0.000     2.000",
+  "analytical_heatmap_modal_bf": "Analytical distribution at BF=23 (naive BF/9 per slot):\nslot       TTO_1     TTO_2     TTO_3     TTO_4     total\n--------------------------------------------------------\n1          1.000     1.000     0.556     0.000     2.556\n2          1.000     1.000     0.556     0.000     2.556\n3          1.000     1.000     0.556     0.000     2.556\n4          1.000     1.000     0.556     0.000     2.556\n5          1.000     1.000     0.556     0.000     2.556\n6          1.000     1.000     0.556     0.000     2.556\n7          1.000     1.000     0.556     0.000     2.556\n8          1.000     1.000     0.556     0.000     2.556\n9          1.000     1.000     0.556     0.000     2.556",
+  "top_empirical_vs_analytical_discrepancies": [
+    {
+      "bf": 17,
+      "slot": 9,
+      "tto": 2,
+      "empirical": 0.0,
+      "analytical": 0.8889,
+      "delta": -0.8889
+    },
+    {
+      "bf": 19,
+      "slot": 1,
+      "tto": 3,
+      "empirical": 1.0,
+      "analytical": 0.1111,
+      "delta": 0.8889
+    },
+    {
+      "bf": 26,
+      "slot": 9,
+      "tto": 3,
+      "empirical": 0.0,
+      "analytical": 0.8889,
+      "delta": -0.8889
+    },
+    {
+      "bf": 28,
+      "slot": 1,
+      "tto": 4,
+      "empirical": 1.0,
+      "analytical": 0.1111,
+      "delta": 0.8889
+    },
+    {
+      "bf": 16,
+      "slot": 8,
+      "tto": 2,
+      "empirical": 0.0,
+      "analytical": 0.7778,
+      "delta": -0.7778
+    },
+    {
+      "bf": 16,
+      "slot": 9,
+      "tto": 2,
+      "empirical": 0.0,
+      "analytical": 0.7778,
+      "delta": -0.7778
+    },
+    {
+      "bf": 20,
+      "slot": 1,
+      "tto": 3,
+      "empirical": 1.0,
+      "analytical": 0.2222,
+      "delta": 0.7778
+    },
+    {
+      "bf": 20,
+      "slot": 2,
+      "tto": 3,
+      "empirical": 1.0,
+      "analytical": 0.2222,
+      "delta": 0.7778
+    },
+    {
+      "bf": 25,
+      "slot": 8,
+      "tto": 3,
+      "empirical": 0.0,
+      "analytical": 0.7778,
+      "delta": -0.7778
+    },
+    {
+      "bf": 25,
+      "slot": 9,
+      "tto": 3,
+      "empirical": 0.0,
+      "analytical": 0.7778,
+      "delta": -0.7778
+    },
+    {
+      "bf": 29,
+      "slot": 1,
+      "tto": 4,
+      "empirical": 1.0,
+      "analytical": 0.2222,
+      "delta": 0.7778
+    },
+    {
+      "bf": 29,
+      "slot": 2,
+      "tto": 4,
+      "empirical": 1.0,
+      "analytical": 0.2222,
+      "delta": 0.7778
+    },
+    {
+      "bf": 21,
+      "slot": 1,
+      "tto": 3,
+      "empirical": 1.0,
+      "analytical": 0.3333,
+      "delta": 0.6667
+    },
+    {
+      "bf": 21,
+      "slot": 2,
+      "tto": 3,
+      "empirical": 1.0,
+      "analytical": 0.3333,
+      "delta": 0.6667
+    },
+    {
+      "bf": 21,
+      "slot": 3,
+      "tto": 3,
+      "empirical": 1.0,
+      "analytical": 0.3333,
+      "delta": 0.6667
+    },
+    {
+      "bf": 24,
+      "slot": 7,
+      "tto": 3,
+      "empirical": 0.0,
+      "analytical": 0.6667,
+      "delta": -0.6667
+    },
+    {
+      "bf": 24,
+      "slot": 8,
+      "tto": 3,
+      "empirical": 0.0,
+      "analytical": 0.6667,
+      "delta": -0.6667
+    },
+    {
+      "bf": 24,
+      "slot": 9,
+      "tto": 3,
+      "empirical": 0.0,
+      "analytical": 0.6667,
+      "delta": -0.6667
+    },
+    {
+      "bf": 30,
+      "slot": 1,
+      "tto": 4,
+      "empirical": 1.0,
+      "analytical": 0.3333,
+      "delta": 0.6667
+    },
+    {
+      "bf": 30,
+      "slot": 2,
+      "tto": 4,
+      "empirical": 1.0,
+      "analytical": 0.3333,
+      "delta": 0.6667
+    }
+  ],
+  "n_total_discrepancies_over_0.01": 117
+}

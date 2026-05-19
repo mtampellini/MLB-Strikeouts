@@ -46,6 +46,11 @@ backend/data/processed/*
 # (heat map, 95% CI, research benchmark comparison, archetype interaction finding).
 !backend/data/processed/tto_multipliers.json
 !backend/data/processed/tto_multipliers_report.json
+# Phase 3-v2c-0 output: empirical PA distribution by (total_bf x slot x TTO bucket)
+# with low-sample smoothing + diagnostic report (modal-BF heatmap, naive-analytical
+# vs empirical discrepancies).
+!backend/data/processed/pa_distribution_by_bf.json
+!backend/data/processed/pa_distribution_report.json
 # nb_dispersion.json: locked value from scripts/fit_nb_dispersion.py.
 !backend/data/processed/nb_dispersion.json
 # tracker.json: generated nightly, read at build time for big-number cards.
