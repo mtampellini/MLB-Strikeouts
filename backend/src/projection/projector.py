@@ -26,7 +26,9 @@ from .effective_k_rate import compute_effective_k_rate, load_csw_to_k_relationsh
 from .features_bf import BF_FLOOR, EBFResult, compute_e_bf
 from .features_kpa import (
     PKPAResult,
+    _logit,
     _pitcher_k_pct,
+    _sigmoid,
     compute_p_k_pa,
     pitcher_csw_pct_season,
 )
@@ -213,14 +215,24 @@ def _compute_p_k_for_cell(
     pitcher_k_rate: float,
     tto_table: TTOMultipliers,
     archetype: str,
+    fitted_coefs: object | None = None,
+    game_log_odds_shift: float = 0.0,
 ) -> tuple[float, dict]:
     """Return (p_k_in_cell, debug_info).
 
-    p_k_in_cell = clip(log5(batter_k, pitcher_k, league_k) * tto_multiplier).
+    Two paths:
 
-    When the batter has no individual rate (per_batter_k entry is None),
-    use the league average vs hand as the batter rate (cell still
-    contributes to E[K]).
+    1. **Fitted path** (``fitted_coefs`` provided, Phase 4c-v2 Step 6):
+       ``logit(p_k) = logit(log5_prior) + game_log_odds_shift +
+       arch_tto_shift``, where game_log_odds_shift carries
+       ``intercept + velocity_z * coef + log_park_k * coef`` (per-game
+       constants, computed once by the caller).
+    2. **Placeholder path** (``fitted_coefs is None``): the legacy
+       multiplicative composition ``log5_prior * tto_multiplier`` from
+       Phase 3-v2c-iv.
+
+    Batter K-rate fallback to league average when individual sample is
+    insufficient (cell still contributes; flagged in ``k_source``).
     """
     pitcher_hand = bundle.pitcher.handedness
     eff_hand = _effective_batter_hand(batter, pitcher_hand)
@@ -239,17 +251,37 @@ def _compute_p_k_for_cell(
         league_k if league_k is not None else LEAGUE_K_PCT_HARD_FALLBACK
     )
     log5_prior = _compute_log5(batter_k_val, pitcher_k_rate, league_for_log5)
-    tto_mult = _get_tto_multiplier(tto_table, archetype, tto)
-    p_k_cell = log5_prior * tto_mult
-    p_k_cell = max(P_K_CELL_FLOOR, min(P_K_CELL_CEIL, p_k_cell))
 
-    return p_k_cell, {
-        "log5_prior": log5_prior,
-        "tto_mult": tto_mult,
-        "league_k": league_k,
-        "batter_k_val": batter_k_val,
-        "k_source": k_source,
-    }
+    if fitted_coefs is not None:
+        # Fitted additive log-odds path.
+        logit_log5 = _logit(log5_prior)
+        arch_shift = fitted_coefs.get_archetype_tto_shift(archetype, tto)
+        adjusted_logit = logit_log5 + game_log_odds_shift + arch_shift
+        p_k_cell = _sigmoid(adjusted_logit)
+        debug = {
+            "path": "fitted",
+            "log5_prior": log5_prior,
+            "game_log_odds_shift": game_log_odds_shift,
+            "arch_tto_shift": arch_shift,
+            "league_k": league_k,
+            "batter_k_val": batter_k_val,
+            "k_source": k_source,
+        }
+    else:
+        # Placeholder multiplicative path (Phase 3-v2c-iv).
+        tto_mult = _get_tto_multiplier(tto_table, archetype, tto)
+        p_k_cell = log5_prior * tto_mult
+        debug = {
+            "path": "placeholder",
+            "log5_prior": log5_prior,
+            "tto_mult": tto_mult,
+            "league_k": league_k,
+            "batter_k_val": batter_k_val,
+            "k_source": k_source,
+        }
+
+    p_k_cell = max(P_K_CELL_FLOOR, min(P_K_CELL_CEIL, p_k_cell))
+    return p_k_cell, debug
 
 
 def _resolve_csw_to_k_params(
@@ -356,6 +388,8 @@ def _project_per_batter(
     pitcher_k_rate: float,
     archetype: str,
     blend_meta: dict | None = None,
+    fitted_coefs: object | None = None,
+    game_log_odds_shift: float = 0.0,
 ) -> tuple[float, dict, int]:
     """Run the per-(batter, TTO) projection loop.
 
@@ -400,6 +434,8 @@ def _project_per_batter(
                 pitcher_k_rate=pitcher_k_rate,
                 tto_table=tto_table,
                 archetype=archetype,
+                fitted_coefs=fitted_coefs,
+                game_log_odds_shift=game_log_odds_shift,
             )
             k_source_for_batter = debug["k_source"]
             ek = pa_count * p_k
@@ -494,9 +530,37 @@ def project(
             pitcher_k_for_log5 = kpa.p_k_pa
             blend_meta["fallback_to_composed_p_k_pa"] = True
 
+        # Phase 4c-v2 Step 6: compute the game-level log-odds shift if
+        # fitted coefficients are available. The shift is the same for
+        # every (batter, TTO) cell in this game — only the archetype-TTO
+        # interaction varies per cell.
+        fitted_coefs = ctx.fitted_kpa_coefficients
+        game_log_odds_shift = 0.0
+        if fitted_coefs is not None:
+            velocity_z = kpa.used_features.get("pitcher_velocity_trend_z", 0.0)
+            log_park_k = kpa.used_features.get("log_park_k_factor_by_hand", 0.0)
+            game_log_odds_shift = (
+                fitted_coefs.intercept
+                + fitted_coefs.pitcher_velocity_trend_z * float(velocity_z)
+                + fitted_coefs.log_park_k_factor_by_hand * float(log_park_k)
+            )
+            blend_meta["projection_method_details"] = {
+                "kpa_coefficients_source": "fitted",
+                "kpa_rate_space_r2_out": fitted_coefs.rate_space_r2_out,
+                "fitted_coefficients_generated_at": fitted_coefs.generated_at,
+                "fitted_intercept": round(fitted_coefs.intercept, 6),
+                "game_log_odds_shift": round(game_log_odds_shift, 6),
+            }
+        else:
+            blend_meta["projection_method_details"] = {
+                "kpa_coefficients_source": "placeholder",
+            }
+
         e_k, per_batter_breakdown, bf_used = _project_per_batter(
             bundle, ctx, bf.e_bf, pitcher_k_for_log5, archetype,
             blend_meta=blend_meta,
+            fitted_coefs=fitted_coefs,
+            game_log_odds_shift=game_log_odds_shift,
         )
         # PA-weighted p_k_pa surface (so the existing p_k_pa field is still
         # meaningful in the per-batter path). Exclude the _meta entry.

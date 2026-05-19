@@ -1053,11 +1053,16 @@ class ProjectionContext:
     # these are None.
     csw_to_k_intercept: float | None = None
     csw_to_k_slope: float | None = None
+    # Phase 4c-v2 Step 6/6: fitted KPA regression coefficients. When present
+    # the projector applies additive log-odds shifts from the fitted model;
+    # when None it falls back to the placeholder multiplicative path.
+    fitted_kpa_coefficients: object | None = None
 
     @classmethod
     def from_default_paths(cls) -> "ProjectionContext":
         processed = Path(__file__).resolve().parents[2] / "data" / "processed"
         csw_intercept, csw_slope = _try_load_csw_to_k(processed)
+        fitted = _try_load_fitted_kpa_coefficients(processed)
         return cls(
             league_avgs=LeagueAverages.from_json(
                 processed / "league_averages_2025.json"
@@ -1069,11 +1074,48 @@ class ProjectionContext:
             ),
             csw_to_k_intercept=csw_intercept,
             csw_to_k_slope=csw_slope,
+            fitted_kpa_coefficients=fitted,
         )
 
 
-# Module-level guard so the legacy-fallback warning fires once, not per call.
+# Module-level guards so the legacy-fallback warnings fire once, not per call.
 _CSW_LOAD_WARNED = False
+_FITTED_LOAD_WARNED = False
+
+
+def _try_load_fitted_kpa_coefficients(processed_dir: Path) -> "object | None":
+    """Phase 4c-v2 Step 6: lazy-load FittedKPACoefficients from disk.
+
+    Returns None with a one-shot warning if the file is missing or the
+    fit didn't pass gates. The projector handles None by using the
+    placeholder log-odds composition.
+    """
+    global _FITTED_LOAD_WARNED
+    # Local import to avoid a top-of-module circular (fitted_coefficients
+    # has no upstream deps on inputs, but keep the boundary clean).
+    from .fitted_coefficients import load_fitted_kpa_coefficients
+
+    path = processed_dir / "p_k_pa_coefficients.json"
+    if not path.exists():
+        if not _FITTED_LOAD_WARNED:
+            logger.warning(
+                "Fitted KPA coefficients not found at %s; projector using "
+                "placeholder multiplicative composition (legacy behavior)",
+                path,
+            )
+            _FITTED_LOAD_WARNED = True
+        return None
+    try:
+        return load_fitted_kpa_coefficients(path)
+    except (ValueError, FileNotFoundError, OSError) as exc:
+        if not _FITTED_LOAD_WARNED:
+            logger.warning(
+                "Fitted KPA coefficients at %s could not be loaded (%s); "
+                "projector using placeholder composition",
+                path, exc,
+            )
+            _FITTED_LOAD_WARNED = True
+        return None
 
 
 def _try_load_csw_to_k(processed_dir: Path) -> tuple[float | None, float | None]:
