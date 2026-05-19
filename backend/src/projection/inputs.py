@@ -318,6 +318,342 @@ class Market:
         }
 
 
+# ---- Phase 3-v2c-i: P(K|PA) rewrite static data wrappers --------------------
+#
+# These four dataclasses carry the additive contract extensions for the
+# Phase 3-v2c projector rewrite. Each lives as an OPTIONAL field on
+# ProjectionBundle; legacy bundles (Phase 4c E[BF] fit) ignore them entirely.
+
+
+VALID_ARCHETYPES = frozenset({
+    "Power-FF", "Sinker-ball", "Breaking-heavy", "Offspeed-heavy", "Balanced",
+})
+ARCHETYPE_CONFIDENCE_VALUES = frozenset({
+    "current_season", "rolling_30d", "previous_season_fallback", "unknown",
+})
+
+
+@dataclass(frozen=True)
+class PitcherArchetype:
+    """Per-pitcher 5-category classification from Phase 3-v2a, resolved
+    against the bundle's pitcher + game date.
+
+    `confidence` records which lookup path succeeded — see `from_archetypes_lookup`
+    for the fallback chain. archetype="unknown"/confidence="unknown" is the
+    sentinel emitted when none of (current season, rolling 30d, previous
+    season) is available.
+    """
+
+    archetype: str
+    season: int
+    fastball_pct: float
+    four_seam_pct: float
+    sinker_pct: float
+    cutter_pct: float
+    breaking_pct: float
+    offspeed_pct: float
+    n_starts: int
+    confidence: str
+
+    @classmethod
+    def unknown(cls, season: int) -> "PitcherArchetype":
+        return cls(
+            archetype="unknown", season=season,
+            fastball_pct=0.0, four_seam_pct=0.0, sinker_pct=0.0,
+            cutter_pct=0.0, breaking_pct=0.0, offspeed_pct=0.0,
+            n_starts=0, confidence="unknown",
+        )
+
+    @classmethod
+    def from_archetypes_lookup(
+        cls, archetypes_blob: dict, pitcher_mlbam_id: int, game_year: int,
+    ) -> "PitcherArchetype":
+        """Apply the fallback chain: current season → rolling 30d (same
+        season) → previous season → unknown sentinel."""
+        entry = (archetypes_blob.get("archetypes") or {}).get(str(pitcher_mlbam_id))
+        if not entry:
+            return cls.unknown(game_year)
+
+        by_season = entry.get("by_season") or {}
+        rolling = entry.get("season_rolling_30d") or {}
+
+        cur = by_season.get(str(game_year))
+        if cur and "archetype" in cur:
+            return cls._from_info(cur, game_year, "current_season")
+
+        cur_rolling = rolling.get(str(game_year))
+        if cur_rolling and "archetype" in cur_rolling:
+            return cls._from_info(cur_rolling, game_year, "rolling_30d")
+
+        prev = by_season.get(str(game_year - 1))
+        if prev and "archetype" in prev:
+            return cls._from_info(prev, game_year - 1, "previous_season_fallback")
+
+        return cls.unknown(game_year)
+
+    @classmethod
+    def _from_info(cls, info: dict, season: int, confidence: str) -> "PitcherArchetype":
+        return cls(
+            archetype=str(info["archetype"]),
+            season=int(season),
+            fastball_pct=float(info.get("fastball_pct") or 0.0),
+            four_seam_pct=float(info.get("four_seam_pct") or 0.0),
+            sinker_pct=float(info.get("sinker_pct") or 0.0),
+            cutter_pct=float(info.get("cutter_pct") or 0.0),
+            breaking_pct=float(info.get("breaking_pct") or 0.0),
+            offspeed_pct=float(info.get("offspeed_pct") or 0.0),
+            n_starts=int(info.get("n_starts") or 0),
+            confidence=confidence,
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "archetype": self.archetype,
+            "season": self.season,
+            "fastball_pct": self.fastball_pct,
+            "four_seam_pct": self.four_seam_pct,
+            "sinker_pct": self.sinker_pct,
+            "cutter_pct": self.cutter_pct,
+            "breaking_pct": self.breaking_pct,
+            "offspeed_pct": self.offspeed_pct,
+            "n_starts": self.n_starts,
+            "confidence": self.confidence,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "PitcherArchetype":
+        return cls(
+            archetype=str(d["archetype"]),
+            season=int(d["season"]),
+            fastball_pct=float(d["fastball_pct"]),
+            four_seam_pct=float(d["four_seam_pct"]),
+            sinker_pct=float(d["sinker_pct"]),
+            cutter_pct=float(d["cutter_pct"]),
+            breaking_pct=float(d["breaking_pct"]),
+            offspeed_pct=float(d["offspeed_pct"]),
+            n_starts=int(d["n_starts"]),
+            confidence=str(d["confidence"]),
+        )
+
+
+@dataclass(frozen=True)
+class TTOMultiplierCell:
+    multiplier: float
+    k_rate: float
+    n_pa: int
+    low_sample: bool
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "TTOMultiplierCell":
+        return cls(
+            multiplier=float(d["multiplier"]),
+            k_rate=float(d["k_rate"]),
+            n_pa=int(d["n_pa"]),
+            low_sample=bool(d.get("low_sample", False)),
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "multiplier": self.multiplier,
+            "k_rate": self.k_rate,
+            "n_pa": self.n_pa,
+            "low_sample": self.low_sample,
+        }
+
+
+@dataclass(frozen=True)
+class TTOMultipliers:
+    """Full lookup table — 5 archetypes x 4 TTO buckets + league_wide
+    fallback (TTO only)."""
+
+    by_archetype: dict[str, dict[int, TTOMultiplierCell]]
+    league_wide: dict[int, TTOMultiplierCell]
+
+    @classmethod
+    def from_json(cls, path: Path | str) -> "TTOMultipliers":
+        blob = json.loads(Path(path).read_text(encoding="utf-8"))
+        return cls.from_dict(blob)
+
+    @classmethod
+    def from_dict(cls, blob: dict) -> "TTOMultipliers":
+        by_arch: dict[str, dict[int, TTOMultiplierCell]] = {}
+        for arch, cells in (blob.get("by_archetype") or {}).items():
+            inner: dict[int, TTOMultiplierCell] = {}
+            for key, cell in cells.items():
+                # keys arrive as "tto_1", "tto_2", ... — strip prefix
+                t = int(key.split("_")[-1])
+                inner[t] = TTOMultiplierCell.from_dict(cell)
+            by_arch[arch] = inner
+        lw: dict[int, TTOMultiplierCell] = {}
+        for key, cell in (blob.get("league_wide") or {}).items():
+            t = int(key.split("_")[-1])
+            lw[t] = TTOMultiplierCell.from_dict(cell)
+        return cls(by_archetype=by_arch, league_wide=lw)
+
+    def to_dict(self) -> dict:
+        return {
+            "by_archetype": {
+                arch: {f"tto_{t}": c.to_dict() for t, c in cells.items()}
+                for arch, cells in self.by_archetype.items()
+            },
+            "league_wide": {
+                f"tto_{t}": c.to_dict() for t, c in self.league_wide.items()
+            },
+        }
+
+    def lookup(self, archetype: str | None, tto: int) -> TTOMultiplierCell:
+        """Return the cell for (archetype, TTO). Falls back to league_wide
+        when archetype is unknown / missing."""
+        if archetype and archetype in self.by_archetype:
+            cell = self.by_archetype[archetype].get(int(tto))
+            if cell is not None:
+                return cell
+        return self.league_wide[int(tto)]
+
+
+@dataclass(frozen=True)
+class ParkKFactorsByHand:
+    """Per-venue L/R-split park K factor from Phase 4b-v2."""
+
+    venue_id: int
+    venue_name: str
+    factor_lhp: float
+    factor_rhp: float
+    factor_combined: float
+    n_games_lhp: int
+    n_games_rhp: int
+
+    @classmethod
+    def from_json_lookup(
+        cls, path: Path | str, venue_id: int | None,
+    ) -> "ParkKFactorsByHand | None":
+        if venue_id is None:
+            return None
+        blob = json.loads(Path(path).read_text(encoding="utf-8"))
+        entry = (blob.get("factors") or {}).get(str(int(venue_id)))
+        if not entry:
+            return None
+        return cls(
+            venue_id=int(venue_id),
+            venue_name=str(entry.get("venue_name") or ""),
+            factor_lhp=float(entry.get("factor_lhp") or 1.0),
+            factor_rhp=float(entry.get("factor_rhp") or 1.0),
+            factor_combined=float(entry.get("factor_combined") or 1.0),
+            n_games_lhp=int(entry.get("n_games_lhp") or 0),
+            n_games_rhp=int(entry.get("n_games_rhp") or 0),
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "venue_id": self.venue_id,
+            "venue_name": self.venue_name,
+            "factor_lhp": self.factor_lhp,
+            "factor_rhp": self.factor_rhp,
+            "factor_combined": self.factor_combined,
+            "n_games_lhp": self.n_games_lhp,
+            "n_games_rhp": self.n_games_rhp,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "ParkKFactorsByHand":
+        return cls(
+            venue_id=int(d["venue_id"]),
+            venue_name=str(d["venue_name"]),
+            factor_lhp=float(d["factor_lhp"]),
+            factor_rhp=float(d["factor_rhp"]),
+            factor_combined=float(d["factor_combined"]),
+            n_games_lhp=int(d["n_games_lhp"]),
+            n_games_rhp=int(d["n_games_rhp"]),
+        )
+
+    def for_pitcher_hand(self, hand: str | None) -> float:
+        if hand == "L":
+            return self.factor_lhp
+        if hand == "R":
+            return self.factor_rhp
+        return self.factor_combined
+
+
+@dataclass(frozen=True)
+class PADistributionCell:
+    tto_1: float
+    tto_2: float
+    tto_3: float
+    tto_4: float
+    total_pa: float
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "PADistributionCell":
+        return cls(
+            tto_1=float(d["tto_1"]),
+            tto_2=float(d["tto_2"]),
+            tto_3=float(d["tto_3"]),
+            tto_4=float(d["tto_4"]),
+            total_pa=float(d["total_pa"]),
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "tto_1": self.tto_1, "tto_2": self.tto_2, "tto_3": self.tto_3,
+            "tto_4": self.tto_4, "total_pa": self.total_pa,
+        }
+
+
+@dataclass(frozen=True)
+class PADistribution:
+    """Full PA distribution lookup table from Phase 3-v2c-0.
+
+    by_bf: total_bf (int) → batting_order_slot (1..9, int) → cell.
+    """
+
+    by_bf: dict[int, dict[int, PADistributionCell]]
+    bf_range_observed: tuple[int, int]
+    modal_bf: int
+
+    @classmethod
+    def from_json(cls, path: Path | str) -> "PADistribution":
+        blob = json.loads(Path(path).read_text(encoding="utf-8"))
+        return cls.from_dict(blob)
+
+    @classmethod
+    def from_dict(cls, blob: dict) -> "PADistribution":
+        by_bf: dict[int, dict[int, PADistributionCell]] = {}
+        for bf_str, entry in (blob.get("distributions") or {}).items():
+            inner = (entry.get("by_slot") or {})
+            slot_map: dict[int, PADistributionCell] = {}
+            for slot_str, cell in inner.items():
+                slot_map[int(slot_str)] = PADistributionCell.from_dict(cell)
+            by_bf[int(bf_str)] = slot_map
+        rng = blob.get("summary", {}).get("bf_range_observed") or (0, 0)
+        modal = blob.get("summary", {}).get("modal_bf") or 0
+        return cls(
+            by_bf=by_bf,
+            bf_range_observed=(int(rng[0]), int(rng[1])),
+            modal_bf=int(modal),
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "by_bf": {
+                str(bf): {str(s): c.to_dict() for s, c in cells.items()}
+                for bf, cells in self.by_bf.items()
+            },
+            "bf_range_observed": list(self.bf_range_observed),
+            "modal_bf": self.modal_bf,
+        }
+
+    def lookup(self, projected_bf: float) -> dict[int, PADistributionCell]:
+        """Round projected_bf to the nearest integer key (clamped to observed
+        range) and return that BF's {slot -> cell} map."""
+        keys = list(self.by_bf.keys())
+        if not keys:
+            return {}
+        bf_int = int(round(projected_bf))
+        lo, hi = min(keys), max(keys)
+        bf_int = max(lo, min(hi, bf_int))
+        return self.by_bf[bf_int]
+
+
 @dataclass(frozen=True)
 class ProjectionBundle:
     metadata: BundleMetadata
@@ -325,6 +661,14 @@ class ProjectionBundle:
     opposing_lineup: OpposingLineup
     game_context: GameContext
     market: Market
+
+    # Phase 3-v2c-i additive fields. All default None for backward compat.
+    # Phase 4c E[BF] fit ignores these. Phase 3-v2c-iv projector requires
+    # them populated for the new P(K|PA) path.
+    pitcher_archetype: "PitcherArchetype | None" = None
+    tto_multipliers: "TTOMultipliers | None" = None
+    park_k_factors_by_hand: "ParkKFactorsByHand | None" = None
+    pa_distribution: "PADistribution | None" = None
 
     # ---- Loader -----------------------------------------------------------
 
@@ -343,22 +687,110 @@ class ProjectionBundle:
         _validate_enums(blob)
         _check_handedness_consistency(blob)  # warn only
 
+        # Phase 3-v2c-i: inline-embedded extension fields (additive).
+        archetype_blob = blob.get("pitcher_archetype")
+        pitcher_archetype = (
+            PitcherArchetype.from_dict(archetype_blob)
+            if archetype_blob is not None else None
+        )
+        tto_blob = blob.get("tto_multipliers")
+        tto_multipliers = TTOMultipliers.from_dict(tto_blob) if tto_blob else None
+        park_blob = blob.get("park_k_factors_by_hand")
+        park_k_factors_by_hand = (
+            ParkKFactorsByHand.from_dict(park_blob) if park_blob else None
+        )
+        pa_blob = blob.get("pa_distribution")
+        pa_distribution = PADistribution.from_dict(pa_blob) if pa_blob else None
+
         return cls(
             metadata=BundleMetadata.from_dict(blob["metadata"]),
             pitcher=PitcherInputs.from_dict(blob["pitcher"]),
             opposing_lineup=OpposingLineup.from_dict(blob["opposing_lineup"]),
             game_context=GameContext.from_dict(blob["game_context"]),
             market=Market.from_dict(blob["market"]),
+            pitcher_archetype=pitcher_archetype,
+            tto_multipliers=tto_multipliers,
+            park_k_factors_by_hand=park_k_factors_by_hand,
+            pa_distribution=pa_distribution,
+        )
+
+    @classmethod
+    def from_dict_with_static_data(
+        cls,
+        blob: dict,
+        *,
+        archetypes_path: "Path | str | None" = None,
+        tto_path: "Path | str | None" = None,
+        park_k_factors_path: "Path | str | None" = None,
+        pa_distribution_path: "Path | str | None" = None,
+    ) -> "ProjectionBundle":
+        """Load a bundle and ALSO populate the four Phase 3-v2c-i extension
+        fields from the static data files. Used by build_sample_bundle so
+        downstream consumers see a fully-hydrated bundle. Missing file paths
+        leave the corresponding field None (backward compat)."""
+        bundle = cls.from_dict(blob)
+
+        pitcher_archetype = bundle.pitcher_archetype
+        if pitcher_archetype is None and archetypes_path is not None:
+            try:
+                archetypes_blob = json.loads(
+                    Path(archetypes_path).read_text(encoding="utf-8")
+                )
+                pitcher_archetype = PitcherArchetype.from_archetypes_lookup(
+                    archetypes_blob,
+                    bundle.metadata.pitcher_mlbam_id,
+                    bundle.metadata.game_date.year,
+                )
+            except FileNotFoundError:
+                pitcher_archetype = None
+
+        tto_multipliers = bundle.tto_multipliers
+        if tto_multipliers is None and tto_path is not None:
+            try:
+                tto_multipliers = TTOMultipliers.from_json(tto_path)
+            except FileNotFoundError:
+                tto_multipliers = None
+
+        park_k = bundle.park_k_factors_by_hand
+        if park_k is None and park_k_factors_path is not None:
+            park_k = ParkKFactorsByHand.from_json_lookup(
+                park_k_factors_path, bundle.game_context.venue_id,
+            )
+
+        pa_distribution = bundle.pa_distribution
+        if pa_distribution is None and pa_distribution_path is not None:
+            try:
+                pa_distribution = PADistribution.from_json(pa_distribution_path)
+            except FileNotFoundError:
+                pa_distribution = None
+
+        # Re-construct with the populated fields (frozen dataclass)
+        from dataclasses import replace
+        return replace(
+            bundle,
+            pitcher_archetype=pitcher_archetype,
+            tto_multipliers=tto_multipliers,
+            park_k_factors_by_hand=park_k,
+            pa_distribution=pa_distribution,
         )
 
     def to_dict(self) -> dict:
-        return {
+        out = {
             "metadata": self.metadata.to_dict(),
             "pitcher": self.pitcher.to_dict(),
             "opposing_lineup": self.opposing_lineup.to_dict(),
             "game_context": self.game_context.to_dict(),
             "market": self.market.to_dict(),
         }
+        if self.pitcher_archetype is not None:
+            out["pitcher_archetype"] = self.pitcher_archetype.to_dict()
+        if self.tto_multipliers is not None:
+            out["tto_multipliers"] = self.tto_multipliers.to_dict()
+        if self.park_k_factors_by_hand is not None:
+            out["park_k_factors_by_hand"] = self.park_k_factors_by_hand.to_dict()
+        if self.pa_distribution is not None:
+            out["pa_distribution"] = self.pa_distribution.to_dict()
+        return out
 
 
 # ---- Static-data wrappers (Phase 3a exposes; 3b/3c consume) ----------------

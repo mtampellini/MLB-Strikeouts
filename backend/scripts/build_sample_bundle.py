@@ -59,6 +59,7 @@ logger = logging.getLogger(__name__)
 
 BUNDLE_VERSION = "1.0"
 OUT_DIR = Path(__file__).resolve().parents[1] / "data"
+PROCESSED_DIR = Path(__file__).resolve().parents[1] / "data" / "processed"
 
 # Statcast columns we surface in the bundle. The full pybaseball response has
 # ~118 columns; we keep the subset Phase 3 features will need (see
@@ -534,7 +535,52 @@ def build_bundle(target_date: date, pitcher_id: int) -> dict:
         ),
         "market": market,
     }
+
+    # 9. Phase 3-v2c-i additive fields: read static data files and embed.
+    #    Each is optional; missing file leaves the field absent (None on
+    #    the typed side). Done last so the bundle builder remains usable
+    #    in environments where the Phase 3-v2c static data isn't present.
+    bundle.update(_build_phase3_v2c_i_fields(pitcher_id, target_date, context.venue_id))
     return bundle
+
+
+def _build_phase3_v2c_i_fields(
+    pitcher_id: int, game_date: date, venue_id: int | None,
+) -> dict:
+    """Read the four Phase 3-v2c-i static data files and produce the embedded
+    additive sections. Missing files yield no keys (legacy bundle shape)."""
+    from src.projection.inputs import (
+        PADistribution,
+        ParkKFactorsByHand,
+        PitcherArchetype,
+        TTOMultipliers,
+    )
+
+    out: dict[str, Any] = {}
+
+    archetypes_path = PROCESSED_DIR / "pitcher_archetypes.json"
+    if archetypes_path.exists():
+        archetypes_blob = json.loads(archetypes_path.read_text(encoding="utf-8"))
+        pa = PitcherArchetype.from_archetypes_lookup(
+            archetypes_blob, pitcher_id, game_date.year,
+        )
+        out["pitcher_archetype"] = pa.to_dict()
+
+    tto_path = PROCESSED_DIR / "tto_multipliers.json"
+    if tto_path.exists():
+        out["tto_multipliers"] = TTOMultipliers.from_json(tto_path).to_dict()
+
+    park_path = PROCESSED_DIR / "park_k_factors.json"
+    if park_path.exists() and venue_id is not None:
+        park = ParkKFactorsByHand.from_json_lookup(park_path, venue_id)
+        if park is not None:
+            out["park_k_factors_by_hand"] = park.to_dict()
+
+    pa_dist_path = PROCESSED_DIR / "pa_distribution_by_bf.json"
+    if pa_dist_path.exists():
+        out["pa_distribution"] = PADistribution.from_json(pa_dist_path).to_dict()
+
+    return out
 
 
 def main() -> int:

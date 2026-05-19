@@ -92,6 +92,17 @@ ISO_DATETIME_RE = re.compile(
 )
 
 
+VALID_ARCHETYPES = (
+    "Power-FF", "Sinker-ball", "Breaking-heavy", "Offspeed-heavy",
+    "Balanced", "unknown",
+)
+VALID_ARCHETYPE_CONFIDENCE = (
+    "current_season", "rolling_30d", "previous_season_fallback", "unknown",
+)
+PARK_K_FACTOR_MIN = 0.85
+PARK_K_FACTOR_MAX = 1.30
+
+
 def validate(bundle: dict) -> list[str]:
     issues: list[str] = []
     issues.extend(_check_required_keys(bundle, REQUIRED_TOP_LEVEL, where="root"))
@@ -105,8 +116,131 @@ def validate(bundle: dict) -> list[str]:
         issues.extend(_check_game_context(bundle["game_context"]))
     if "market" in bundle:
         issues.extend(_check_market(bundle["market"]))
+    # Phase 3-v2c-i optional extension fields. Only validate when present;
+    # legacy bundles without them are intentionally accepted.
+    if bundle.get("pitcher_archetype") is not None:
+        issues.extend(_check_pitcher_archetype(bundle["pitcher_archetype"]))
+    if bundle.get("tto_multipliers") is not None:
+        issues.extend(_check_tto_multipliers(bundle["tto_multipliers"]))
+    if bundle.get("park_k_factors_by_hand") is not None:
+        issues.extend(_check_park_k_factors_by_hand(bundle["park_k_factors_by_hand"]))
+    if bundle.get("pa_distribution") is not None:
+        issues.extend(_check_pa_distribution(bundle["pa_distribution"]))
     issues.extend(_check_no_unsupported_types(bundle, path="$"))
     return issues
+
+
+def _check_pitcher_archetype(blob: Any) -> list[str]:
+    out: list[str] = []
+    if not isinstance(blob, dict):
+        return ["pitcher_archetype: must be dict"]
+    if blob.get("archetype") not in VALID_ARCHETYPES:
+        out.append(
+            f"pitcher_archetype.archetype: {blob.get('archetype')!r} not in "
+            f"{VALID_ARCHETYPES}"
+        )
+    if blob.get("confidence") not in VALID_ARCHETYPE_CONFIDENCE:
+        out.append(
+            f"pitcher_archetype.confidence: {blob.get('confidence')!r} not in "
+            f"{VALID_ARCHETYPE_CONFIDENCE}"
+        )
+    for k in ("fastball_pct", "four_seam_pct", "sinker_pct", "cutter_pct",
+              "breaking_pct", "offspeed_pct"):
+        v = blob.get(k)
+        if not isinstance(v, (int, float)):
+            out.append(f"pitcher_archetype.{k}: must be numeric")
+    if not isinstance(blob.get("season"), int):
+        out.append("pitcher_archetype.season: must be int")
+    if not isinstance(blob.get("n_starts"), int):
+        out.append("pitcher_archetype.n_starts: must be int")
+    return out
+
+
+def _check_tto_multipliers(blob: Any) -> list[str]:
+    out: list[str] = []
+    if not isinstance(blob, dict):
+        return ["tto_multipliers: must be dict"]
+    by_archetype = blob.get("by_archetype") or {}
+    expected = set(VALID_ARCHETYPES) - {"unknown"}
+    if set(by_archetype.keys()) != expected:
+        out.append(
+            f"tto_multipliers.by_archetype: keys must be {sorted(expected)}, "
+            f"got {sorted(by_archetype.keys())}"
+        )
+    for arch, cells in by_archetype.items():
+        if not isinstance(cells, dict):
+            out.append(f"tto_multipliers.by_archetype.{arch}: must be dict")
+            continue
+        for t in (1, 2, 3, 4):
+            key = f"tto_{t}"
+            if key not in cells:
+                out.append(
+                    f"tto_multipliers.by_archetype.{arch}: missing TTO bucket {t}"
+                )
+                continue
+            cell = cells[key]
+            if not isinstance(cell.get("multiplier"), (int, float)):
+                out.append(
+                    f"tto_multipliers.by_archetype.{arch}.{key}.multiplier: "
+                    f"must be numeric"
+                )
+    league_wide = blob.get("league_wide") or {}
+    for t in (1, 2, 3, 4):
+        if f"tto_{t}" not in league_wide:
+            out.append(f"tto_multipliers.league_wide: missing TTO bucket {t}")
+    return out
+
+
+def _check_park_k_factors_by_hand(blob: Any) -> list[str]:
+    out: list[str] = []
+    if not isinstance(blob, dict):
+        return ["park_k_factors_by_hand: must be dict"]
+    for k in ("factor_lhp", "factor_rhp", "factor_combined"):
+        v = blob.get(k)
+        if not isinstance(v, (int, float)):
+            out.append(f"park_k_factors_by_hand.{k}: must be numeric")
+            continue
+        if not (PARK_K_FACTOR_MIN <= v <= PARK_K_FACTOR_MAX):
+            out.append(
+                f"park_k_factors_by_hand.{k}: {v} outside "
+                f"[{PARK_K_FACTOR_MIN}, {PARK_K_FACTOR_MAX}]"
+            )
+    if not isinstance(blob.get("venue_id"), int):
+        out.append("park_k_factors_by_hand.venue_id: must be int")
+    if not isinstance(blob.get("venue_name"), str):
+        out.append("park_k_factors_by_hand.venue_name: must be str")
+    return out
+
+
+def _check_pa_distribution(blob: Any) -> list[str]:
+    out: list[str] = []
+    if not isinstance(blob, dict):
+        return ["pa_distribution: must be dict"]
+    by_bf = blob.get("by_bf") or {}
+    if not by_bf:
+        out.append("pa_distribution.by_bf: must be non-empty")
+        return out
+    for bf_key, slots in by_bf.items():
+        if not isinstance(slots, dict):
+            out.append(f"pa_distribution.by_bf.{bf_key}: must be dict")
+            continue
+        # Spot-check: every cell's tto values sum to total_pa (±0.001)
+        for slot_key, cell in slots.items():
+            if not isinstance(cell, dict):
+                out.append(
+                    f"pa_distribution.by_bf.{bf_key}.{slot_key}: must be dict"
+                )
+                continue
+            tto_sum = sum(
+                float(cell.get(f"tto_{t}") or 0.0) for t in (1, 2, 3, 4)
+            )
+            total = float(cell.get("total_pa") or 0.0)
+            if abs(tto_sum - total) > 0.001:
+                out.append(
+                    f"pa_distribution.by_bf.{bf_key}.{slot_key}: tto_sum "
+                    f"{tto_sum:.4f} != total_pa {total:.4f}"
+                )
+    return out
 
 
 def _check_required_keys(obj: dict, keys: tuple[str, ...], *, where: str) -> list[str]:
