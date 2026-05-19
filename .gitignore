@@ -41,6 +41,11 @@ backend/data/processed/*
 # Phase 4c-v2 output (per-PA Logit fit with log5 offset; populated after `--full`).
 # Smoke variant (p_k_pa_coefficients_smoke.json) stays ignored.
 !backend/data/processed/p_k_pa_coefficients.json
+# Phase 4c-v2 Step 1 output: CSW%->K% linear regression (intercept, slope,
+# R^2) consumed by Step 2 (effective K rate blend). Diagnostic file carries
+# top residuals + scatter for downstream review.
+!backend/data/processed/csw_to_k_relationship.json
+!backend/data/processed/csw_to_k_diagnostic.json
 # Phase 3-v2a output: pitcher archetypes (per-season + rolling 30-day classification)
 # and diagnostic report (top-10 per archetype, YoY transitions, spot-check WARNs).
 !backend/data/processed/pitcher_archetypes.json

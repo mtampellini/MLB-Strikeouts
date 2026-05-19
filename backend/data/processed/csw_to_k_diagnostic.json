@@ -1,0 +1,487 @@
+{
+  "generated_at": "2026-05-19T16:54:16Z",
+  "scatter_top_20_by_pa": [
+    {
+      "pitcher_id": 571945,
+      "name": "Mikolas, Miles",
+      "season": 2023,
+      "n_pitches": 3198,
+      "n_pa": 860,
+      "csw_pct": 0.2505,
+      "k_pct": 0.1593,
+      "fitted_k_pct": 0.1885,
+      "residual": -0.0292
+    },
+    {
+      "pitcher_id": 657277,
+      "name": "Webb, Logan",
+      "season": 2025,
+      "n_pitches": 3282,
+      "n_pa": 856,
+      "csw_pct": 0.3038,
+      "k_pct": 0.2617,
+      "fitted_k_pct": 0.2757,
+      "residual": -0.014
+    },
+    {
+      "pitcher_id": 657277,
+      "name": "Webb, Logan",
+      "season": 2023,
+      "n_pitches": 3184,
+      "n_pa": 850,
+      "csw_pct": 0.293,
+      "k_pct": 0.2282,
+      "fitted_k_pct": 0.2581,
+      "residual": -0.0298
+    },
+    {
+      "pitcher_id": 668678,
+      "name": "Gallen, Zac",
+      "season": 2023,
+      "n_pitches": 3252,
+      "n_pa": 846,
+      "csw_pct": 0.2851,
+      "k_pct": 0.26,
+      "fitted_k_pct": 0.245,
+      "residual": 0.015
+    },
+    {
+      "pitcher_id": 657277,
+      "name": "Webb, Logan",
+      "season": 2024,
+      "n_pitches": 3209,
+      "n_pa": 841,
+      "csw_pct": 0.2833,
+      "k_pct": 0.2045,
+      "fitted_k_pct": 0.2421,
+      "residual": -0.0376
+    },
+    {
+      "pitcher_id": 607625,
+      "name": "Lugo, Seth",
+      "season": 2024,
+      "n_pitches": 3116,
+      "n_pa": 836,
+      "csw_pct": 0.2811,
+      "k_pct": 0.2165,
+      "fitted_k_pct": 0.2386,
+      "residual": -0.0221
+    },
+    {
+      "pitcher_id": 605135,
+      "name": "Bassitt, Chris",
+      "season": 2023,
+      "n_pitches": 3160,
+      "n_pa": 826,
+      "csw_pct": 0.2797,
+      "k_pct": 0.2252,
+      "fitted_k_pct": 0.2364,
+      "residual": -0.0112
+    },
+    {
+      "pitcher_id": 656605,
+      "name": "Keller, Mitch",
+      "season": 2023,
+      "n_pitches": 3122,
+      "n_pa": 825,
+      "csw_pct": 0.2825,
+      "k_pct": 0.2545,
+      "fitted_k_pct": 0.2409,
+      "residual": 0.0137
+    },
+    {
+      "pitcher_id": 543037,
+      "name": "Cole, Gerrit",
+      "season": 2023,
+      "n_pitches": 3286,
+      "n_pa": 821,
+      "csw_pct": 0.2781,
+      "k_pct": 0.2704,
+      "fitted_k_pct": 0.2338,
+      "residual": 0.0366
+    },
+    {
+      "pitcher_id": 605400,
+      "name": "Nola, Aaron",
+      "season": 2024,
+      "n_pitches": 3193,
+      "n_pa": 820,
+      "csw_pct": 0.2794,
+      "k_pct": 0.2402,
+      "fitted_k_pct": 0.2357,
+      "residual": 0.0045
+    },
+    {
+      "pitcher_id": 676979,
+      "name": "Crochet, Garrett",
+      "season": 2025,
+      "n_pitches": 3151,
+      "n_pa": 814,
+      "csw_pct": 0.2913,
+      "k_pct": 0.3133,
+      "fitted_k_pct": 0.2553,
+      "residual": 0.058
+    },
+    {
+      "pitcher_id": 668678,
+      "name": "Gallen, Zac",
+      "season": 2025,
+      "n_pitches": 3137,
+      "n_pa": 813,
+      "csw_pct": 0.2761,
+      "k_pct": 0.2153,
+      "fitted_k_pct": 0.2303,
+      "residual": -0.0151
+    },
+    {
+      "pitcher_id": 664285,
+      "name": "Valdez, Framber",
+      "season": 2023,
+      "n_pitches": 2962,
+      "n_pa": 808,
+      "csw_pct": 0.2812,
+      "k_pct": 0.2475,
+      "fitted_k_pct": 0.2388,
+      "residual": 0.0087
+    },
+    {
+      "pitcher_id": 458681,
+      "name": "Lynn, Lance",
+      "season": 2023,
+      "n_pitches": 3174,
+      "n_pa": 808,
+      "csw_pct": 0.2653,
+      "k_pct": 0.2364,
+      "fitted_k_pct": 0.2127,
+      "residual": 0.0237
+    },
+    {
+      "pitcher_id": 502043,
+      "name": "Gibson, Kyle",
+      "season": 2023,
+      "n_pitches": 3039,
+      "n_pa": 807,
+      "csw_pct": 0.2725,
+      "k_pct": 0.1945,
+      "fitted_k_pct": 0.2245,
+      "residual": -0.0299
+    },
+    {
+      "pitcher_id": 650911,
+      "name": "S\u00e1nchez, Cristopher",
+      "season": 2025,
+      "n_pitches": 2897,
+      "n_pa": 807,
+      "csw_pct": 0.3138,
+      "k_pct": 0.2627,
+      "fitted_k_pct": 0.292,
+      "residual": -0.0293
+    },
+    {
+      "pitcher_id": 669302,
+      "name": "Gilbert, Logan",
+      "season": 2024,
+      "n_pitches": 3043,
+      "n_pa": 803,
+      "csw_pct": 0.301,
+      "k_pct": 0.274,
+      "fitted_k_pct": 0.2711,
+      "residual": 0.0028
+    },
+    {
+      "pitcher_id": 664285,
+      "name": "Valdez, Framber",
+      "season": 2025,
+      "n_pitches": 2898,
+      "n_pa": 802,
+      "csw_pct": 0.2854,
+      "k_pct": 0.2332,
+      "fitted_k_pct": 0.2456,
+      "residual": -0.0124
+    },
+    {
+      "pitcher_id": 622491,
+      "name": "Castillo, Luis",
+      "season": 2023,
+      "n_pitches": 3209,
+      "n_pa": 802,
+      "csw_pct": 0.2907,
+      "k_pct": 0.2731,
+      "fitted_k_pct": 0.2543,
+      "residual": 0.0187
+    },
+    {
+      "pitcher_id": 641154,
+      "name": "L\u00f3pez, Pablo",
+      "season": 2023,
+      "n_pitches": 3032,
+      "n_pa": 801,
+      "csw_pct": 0.3011,
+      "k_pct": 0.2921,
+      "fitted_k_pct": 0.2713,
+      "residual": 0.0208
+    }
+  ],
+  "top_negative_residuals_k_below_csw": [
+    {
+      "pitcher_id": 622503,
+      "name": "Crismatt, Nabil",
+      "season": 2025,
+      "n_pitches": 534,
+      "n_pa": 153,
+      "csw_pct": 0.309,
+      "k_pct": 0.1634,
+      "fitted_k_pct": 0.2842,
+      "residual": -0.1208
+    },
+    {
+      "pitcher_id": 598286,
+      "name": "Ramirez, Nick",
+      "season": 2023,
+      "n_pitches": 659,
+      "n_pa": 172,
+      "csw_pct": 0.2989,
+      "k_pct": 0.1628,
+      "fitted_k_pct": 0.2677,
+      "residual": -0.1049
+    },
+    {
+      "pitcher_id": 596001,
+      "name": "Junis, Jakob",
+      "season": 2024,
+      "n_pitches": 944,
+      "n_pa": 253,
+      "csw_pct": 0.321,
+      "k_pct": 0.2016,
+      "fitted_k_pct": 0.3038,
+      "residual": -0.1022
+    },
+    {
+      "pitcher_id": 571670,
+      "name": "Floro, Dylan",
+      "season": 2024,
+      "n_pitches": 1020,
+      "n_pa": 279,
+      "csw_pct": 0.299,
+      "k_pct": 0.172,
+      "fitted_k_pct": 0.2679,
+      "residual": -0.0958
+    },
+    {
+      "pitcher_id": 621366,
+      "name": "Borucki, Ryan",
+      "season": 2023,
+      "n_pitches": 531,
+      "n_pa": 152,
+      "csw_pct": 0.3239,
+      "k_pct": 0.2171,
+      "fitted_k_pct": 0.3086,
+      "residual": -0.0915
+    },
+    {
+      "pitcher_id": 663704,
+      "name": "McArthur, James",
+      "season": 2024,
+      "n_pitches": 910,
+      "n_pa": 246,
+      "csw_pct": 0.3121,
+      "k_pct": 0.1992,
+      "fitted_k_pct": 0.2892,
+      "residual": -0.09
+    },
+    {
+      "pitcher_id": 694813,
+      "name": "Stone, Gavin",
+      "season": 2023,
+      "n_pitches": 548,
+      "n_pa": 152,
+      "csw_pct": 0.2774,
+      "k_pct": 0.1447,
+      "fitted_k_pct": 0.2325,
+      "residual": -0.0878
+    },
+    {
+      "pitcher_id": 641656,
+      "name": "Hamilton, Ian",
+      "season": 2024,
+      "n_pitches": 620,
+      "n_pa": 163,
+      "csw_pct": 0.3419,
+      "k_pct": 0.2515,
+      "fitted_k_pct": 0.338,
+      "residual": -0.0865
+    },
+    {
+      "pitcher_id": 669622,
+      "name": "Bender, Anthony",
+      "season": 2025,
+      "n_pitches": 793,
+      "n_pa": 204,
+      "csw_pct": 0.314,
+      "k_pct": 0.2059,
+      "fitted_k_pct": 0.2924,
+      "residual": -0.0865
+    },
+    {
+      "pitcher_id": 689266,
+      "name": "Dodd, Dylan",
+      "season": 2023,
+      "n_pitches": 570,
+      "n_pa": 164,
+      "csw_pct": 0.2439,
+      "k_pct": 0.0915,
+      "fitted_k_pct": 0.1777,
+      "residual": -0.0862
+    }
+  ],
+  "top_positive_residuals_k_above_csw": [
+    {
+      "pitcher_id": 623352,
+      "name": "Hader, Josh",
+      "season": 2023,
+      "n_pitches": 1053,
+      "n_pa": 231,
+      "csw_pct": 0.2877,
+      "k_pct": 0.368,
+      "fitted_k_pct": 0.2495,
+      "residual": 0.1185
+    },
+    {
+      "pitcher_id": 642585,
+      "name": "Bautista, F\u00e9lix",
+      "season": 2023,
+      "n_pitches": 988,
+      "n_pa": 237,
+      "csw_pct": 0.3502,
+      "k_pct": 0.4641,
+      "fitted_k_pct": 0.3515,
+      "residual": 0.1126
+    },
+    {
+      "pitcher_id": 641329,
+      "name": "Baker, Bryan",
+      "season": 2023,
+      "n_pitches": 793,
+      "n_pa": 186,
+      "csw_pct": 0.2346,
+      "k_pct": 0.2742,
+      "fitted_k_pct": 0.1625,
+      "residual": 0.1117
+    },
+    {
+      "pitcher_id": 642585,
+      "name": "Bautista, F\u00e9lix",
+      "season": 2025,
+      "n_pitches": 629,
+      "n_pa": 142,
+      "csw_pct": 0.283,
+      "k_pct": 0.3521,
+      "fitted_k_pct": 0.2417,
+      "residual": 0.1104
+    },
+    {
+      "pitcher_id": 695505,
+      "name": "Burns, Chase",
+      "season": 2025,
+      "n_pitches": 765,
+      "n_pa": 188,
+      "csw_pct": 0.2863,
+      "k_pct": 0.3564,
+      "fitted_k_pct": 0.247,
+      "residual": 0.1093
+    },
+    {
+      "pitcher_id": 663574,
+      "name": "Santillan, Tony",
+      "season": 2024,
+      "n_pitches": 505,
+      "n_pa": 122,
+      "csw_pct": 0.301,
+      "k_pct": 0.377,
+      "fitted_k_pct": 0.2711,
+      "residual": 0.106
+    },
+    {
+      "pitcher_id": 677053,
+      "name": "Nardi, Andrew",
+      "season": 2024,
+      "n_pitches": 910,
+      "n_pa": 210,
+      "csw_pct": 0.278,
+      "k_pct": 0.3333,
+      "fitted_k_pct": 0.2336,
+      "residual": 0.0998
+    },
+    {
+      "pitcher_id": 681911,
+      "name": "Vesia, Alex",
+      "season": 2024,
+      "n_pitches": 1124,
+      "n_pa": 263,
+      "csw_pct": 0.2767,
+      "k_pct": 0.3308,
+      "fitted_k_pct": 0.2314,
+      "residual": 0.0994
+    },
+    {
+      "pitcher_id": 673929,
+      "name": "Leasure, Jordan",
+      "season": 2025,
+      "n_pitches": 1133,
+      "n_pa": 269,
+      "csw_pct": 0.2613,
+      "k_pct": 0.3011,
+      "fitted_k_pct": 0.2061,
+      "residual": 0.095
+    },
+    {
+      "pitcher_id": 489446,
+      "name": "Yates, Kirby",
+      "season": 2024,
+      "n_pitches": 1045,
+      "n_pa": 237,
+      "csw_pct": 0.2976,
+      "k_pct": 0.3586,
+      "fitted_k_pct": 0.2656,
+      "residual": 0.0931
+    }
+  ],
+  "spot_check_predictions": [
+    {
+      "pitcher_id": 694973,
+      "name": "Paul Skenes",
+      "observed_k_pct": 0.3307,
+      "predicted_k_pct": 0.2602,
+      "expected_predicted_range": [
+        0.32,
+        0.38
+      ],
+      "in_range": false,
+      "obs_pred_delta": 0.0706
+    },
+    {
+      "pitcher_id": 664285,
+      "name": "Framber Valdez",
+      "observed_k_pct": 0.2404,
+      "predicted_k_pct": 0.266,
+      "expected_predicted_range": [
+        0.21,
+        0.26
+      ],
+      "in_range": false,
+      "obs_pred_delta": 0.0256
+    },
+    {
+      "pitcher_id": 571578,
+      "name": "Patrick Corbin",
+      "observed_k_pct": 0.1819,
+      "predicted_k_pct": 0.1938,
+      "expected_predicted_range": [
+        0.14,
+        0.19
+      ],
+      "in_range": false,
+      "obs_pred_delta": 0.0119
+    }
+  ]
+}

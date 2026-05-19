@@ -1,0 +1,34 @@
+{
+  "generated_at": "2026-05-19T16:54:16Z",
+  "method": "weighted_linear_regression_csw_to_k",
+  "seasons_used": [
+    2023,
+    2024,
+    2025
+  ],
+  "n_pitcher_seasons": 1432,
+  "min_pitches_filter": 500,
+  "min_pa_filter": 50,
+  "model": {
+    "intercept": -0.220895,
+    "slope": 1.634574,
+    "r_squared": 0.604691,
+    "rmse": 0.031652
+  },
+  "diagnostic": {
+    "n_pitcher_seasons_above_csw_threshold": 240,
+    "csw_range_observed": [
+      0.1929,
+      0.4021
+    ],
+    "k_range_observed": [
+      0.0915,
+      0.4641
+    ],
+    "residual_quantiles": {
+      "10": -0.0416,
+      "50": -0.0022,
+      "90": 0.0423
+    }
+  }
+}
