@@ -38,6 +38,9 @@ backend/data/processed/*
 !backend/data/processed/umpire_k_factors.json
 # Phase 4c output (sample-fit; current attempt FAILED gates, kept for diagnostic).
 !backend/data/processed/feature_coefficients_*.json
+# Phase 4c-v2 output (per-PA Logit fit with log5 offset; populated after `--full`).
+# Smoke variant (p_k_pa_coefficients_smoke.json) stays ignored.
+!backend/data/processed/p_k_pa_coefficients.json
 # Phase 3-v2a output: pitcher archetypes (per-season + rolling 30-day classification)
 # and diagnostic report (top-10 per archetype, YoY transitions, spot-check WARNs).
 !backend/data/processed/pitcher_archetypes.json
