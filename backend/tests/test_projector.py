@@ -105,7 +105,7 @@ def test_project_skips_on_unknown_park():
     # Park check is a required feature in both BF and K|PA; either side can trip.
     assert (
         "park_run_environment_factor" in result.skip_reason
-        or "park_k_factor" in result.skip_reason
+        or "log_park_k_factor_by_hand" in result.skip_reason
     )
 
 
@@ -162,8 +162,8 @@ def test_phase2c_sample_bundle_projects_successfully():
     ):
         assert k in result.features_used_bf
     for k in (
-        "pitcher_k_pct_season_shrunk",
-        "lineup_k_pct_vs_hand",
-        "park_k_factor",
+        "pitcher_csw_pct_season",
+        "league_k_pct_vs_hand",
+        "log_park_k_factor_by_hand",
     ):
         assert k in result.features_used_kpa

@@ -802,6 +802,9 @@ class HandednessAverages:
     obp: float
     zone_contact_pct: float
     chase_rate: float
+    # Phase 3-v2c-iii: league CSW% by hand split. Optional (default None) so
+    # legacy league_averages files without this field continue to load.
+    csw_pct: float | None = None
 
     @classmethod
     def from_dict(cls, d: dict) -> "HandednessAverages":
@@ -810,6 +813,7 @@ class HandednessAverages:
             obp=float(d["obp"]),
             zone_contact_pct=float(d["zone_contact_pct"]),
             chase_rate=float(d["chase_rate"]),
+            csw_pct=float(d["csw_pct"]) if d.get("csw_pct") is not None else None,
         )
 
 

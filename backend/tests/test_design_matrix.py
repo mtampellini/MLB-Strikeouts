@@ -139,29 +139,34 @@ def test_reparam_kpa_creates_pitcher_delta():
     )
 
 
-def test_reparam_kpa_30d_delta_uses_pitcher_season():
-    features = pd.DataFrame({
-        "league_k_pct_vs_hand": [0.225, 0.225],
-        "pitcher_k_pct_season_shrunk": [0.250, 0.200],
-        "pitcher_k_pct_30d_blended": [0.260, 0.190],
-    })
-    out = reparameterize_kpa(features)
-    assert "pitcher_k_pct_30d_delta" in out.matrix.columns
-    assert list(out.matrix["pitcher_k_pct_30d_delta"]) == [
-        pytest.approx(0.010), pytest.approx(-0.010),
-    ]
-
-
-def test_reparam_kpa_park_factor_to_log():
+def test_reparam_kpa_park_factor_to_log_by_hand_back_compat():
+    """Phase 3-v2c-iii: legacy park_k_factor column still flows into the
+    log_park_k_factor_by_hand output (for cached fit samples that predate
+    the L/R-split contract field)."""
     features = pd.DataFrame({
         "league_k_pct_vs_hand": [0.225, 0.225],
         "park_k_factor": [1.10, 0.95],
     })
     out = reparameterize_kpa(features)
-    assert "log_park_k_factor" in out.matrix.columns
+    assert "log_park_k_factor_by_hand" in out.matrix.columns
     np.testing.assert_allclose(
-        out.matrix["log_park_k_factor"].to_numpy(),
+        out.matrix["log_park_k_factor_by_hand"].to_numpy(),
         [np.log(1.10), np.log(0.95)],
+    )
+
+
+def test_reparam_kpa_csw_season_delta_passes_through():
+    """The csw_pct_season_delta column is now produced upstream by the
+    features_kpa builder and just passes through reparameterize_kpa."""
+    features = pd.DataFrame({
+        "league_k_pct_vs_hand": [0.225, 0.225],
+        "pitcher_csw_pct_season_delta": [0.04, -0.02],
+    })
+    out = reparameterize_kpa(features)
+    assert "pitcher_csw_pct_season_delta" in out.matrix.columns
+    np.testing.assert_allclose(
+        out.matrix["pitcher_csw_pct_season_delta"].to_numpy(),
+        [0.04, -0.02],
     )
 
 
@@ -213,8 +218,9 @@ def test_reparam_kpa_drops_zero_variance_umpire_column():
     out = reparameterize_kpa(features)
     assert "log_umpire_k_factor" in out.dropped_columns
     assert "log_umpire_k_factor" not in out.matrix.columns
-    # Park K factor survives (it varies).
-    assert "log_park_k_factor" in out.matrix.columns
+    # Park K factor survives (it varies). Phase 3-v2c-iii renamed the column
+    # to log_park_k_factor_by_hand.
+    assert "log_park_k_factor_by_hand" in out.matrix.columns
 
 
 def test_reparam_bf_drops_zero_variance_columns():

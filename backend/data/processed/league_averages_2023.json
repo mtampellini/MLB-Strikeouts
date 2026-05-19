@@ -2,17 +2,19 @@
   "_note": "Statcast 'stand' always reflects the live batting side. Switch hitters facing RHP show up as L (in LR); facing LHP as R (in RL). LeagueAverages.lookup() applies the same resolution for queries on switch hitters at projection time.",
   "all": {
     "chase_rate": 0.2863,
+    "csw_pct": 0.2755,
     "k_pct": 0.2269,
     "n_pa": 184376,
     "obp": 0.3195,
     "zone_contact_pct": 0.8435
   },
-  "generated_at": "2026-05-18T01:14:30+00:00",
+  "generated_at": "2026-05-19T13:29:41+00:00",
   "n_pa": 184376,
   "season": 2023,
   "splits": {
     "LL": {
       "chase_rate": 0.2776,
+      "csw_pct": 0.2895,
       "k_pct": 0.2357,
       "n_pa": 13066,
       "obp": 0.3141,
@@ -20,6 +22,7 @@
     },
     "LR": {
       "chase_rate": 0.2709,
+      "csw_pct": 0.2649,
       "k_pct": 0.2215,
       "n_pa": 62751,
       "obp": 0.3282,
@@ -27,6 +30,7 @@
     },
     "RL": {
       "chase_rate": 0.2938,
+      "csw_pct": 0.2715,
       "k_pct": 0.221,
       "n_pa": 35689,
       "obp": 0.3256,
@@ -34,6 +38,7 @@
     },
     "RR": {
       "chase_rate": 0.2979,
+      "csw_pct": 0.2844,
       "k_pct": 0.2329,
       "n_pa": 72870,
       "obp": 0.31,

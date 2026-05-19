@@ -170,56 +170,40 @@ def reparameterize_kpa(features: pd.DataFrame) -> ReparameterizedDesign:
             - features["league_k_pct_vs_hand"]
         )
 
-    if "pitcher_k_pct_30d_blended" in features.columns:
-        if "pitcher_k_pct_season_shrunk" in features.columns:
-            out["pitcher_k_pct_30d_delta"] = (
-                features["pitcher_k_pct_30d_blended"]
-                - features["pitcher_k_pct_season_shrunk"]
-            )
-        else:
-            out["pitcher_k_pct_30d_delta"] = (
-                features["pitcher_k_pct_30d_blended"]
-                - features["league_k_pct_vs_hand"]
-            )
-
-    # CSW / chase-whiff / putaway: centered on league anchors. The Phase 3c
-    # constants live in features_kpa.py; we hard-code the same values here.
-    if "pitcher_csw_pct_30d" in features.columns:
-        out["pitcher_csw_pct_30d_delta"] = features["pitcher_csw_pct_30d"] - 0.28
-    if "pitcher_chase_whiff_pct_30d" in features.columns:
+    # Phase 3-v2c-iii: pitcher_k_pct_30d_delta DROPPED (sign-stable wrong)
+    # Phase 3-v2c-iii: pitcher_csw_pct_30d_delta DROPPED (bootstrap-unstable)
+    # Phase 3-v2c-iii: pitcher_putaway_pct_delta DROPPED (bootstrap = random)
+    # Phase 3-v2c-iii: PRIMARY K-skill is now pitcher_csw_pct_season (its
+    # delta is computed by features_kpa.pitcher_csw_pct_season_delta and
+    # surfaces in the fit feature column already centered — pass through).
+    if "pitcher_csw_pct_season_delta" in features.columns:
+        out["pitcher_csw_pct_season_delta"] = features["pitcher_csw_pct_season_delta"]
+    if "pitcher_chase_whiff_pct_30d_delta" in features.columns:
+        out["pitcher_chase_whiff_pct_30d_delta"] = (
+            features["pitcher_chase_whiff_pct_30d_delta"]
+        )
+    elif "pitcher_chase_whiff_pct_30d" in features.columns:
         out["pitcher_chase_whiff_pct_30d_delta"] = (
             features["pitcher_chase_whiff_pct_30d"] - 0.22
-        )
-    if "pitcher_putaway_pitch_concentration" in features.columns:
-        out["pitcher_putaway_pct_delta"] = (
-            features["pitcher_putaway_pitch_concentration"] - 0.40
         )
 
     # Velocity trend is already a Z-score, centered at 0.
     if "pitcher_velocity_trend_3starts" in features.columns:
         out["pitcher_velocity_trend_z"] = features["pitcher_velocity_trend_3starts"]
+    elif "pitcher_velocity_trend_z" in features.columns:
+        out["pitcher_velocity_trend_z"] = features["pitcher_velocity_trend_z"]
 
-    # Lineup features: center on the league anchor passed in via the same
-    # league_k_pct_vs_hand column where appropriate.
-    if "lineup_k_pct_vs_hand" in features.columns:
-        out["lineup_k_pct_delta"] = (
-            features["lineup_k_pct_vs_hand"] - features["league_k_pct_vs_hand"]
-        )
-    # Zone contact and chase need their own league anchors. The features_kpa
-    # module derives these per-pitcher-hand; for the design matrix we'll use
-    # the row-level builder output minus its anchor (passed in adjacent cols).
-    if "lineup_zone_contact_pct" in features.columns and "league_zone_contact_anchor" in features.columns:
-        out["lineup_zone_contact_delta"] = (
-            features["lineup_zone_contact_pct"] - features["league_zone_contact_anchor"]
-        )
-    if "lineup_chase_rate" in features.columns and "league_chase_anchor" in features.columns:
-        out["lineup_chase_delta"] = (
-            features["lineup_chase_rate"] - features["league_chase_anchor"]
-        )
+    # Phase 3-v2c-iii: aggregated lineup_* features REMOVED. Per-batter
+    # rates are computed by features_per_batter and composed by the
+    # projector (Phase 3-v2c-iv).
 
     # Multiplicative factors in log space (centered at 0 for factor=1.0).
-    if "park_k_factor" in features.columns:
-        out["log_park_k_factor"] = np.log(features["park_k_factor"].clip(lower=1e-6))
+    # Phase 3-v2c-iii: log_park_k_factor_by_hand replaces log_park_k_factor
+    # (legacy column path retained for back-compat with cached fit samples).
+    if "log_park_k_factor_by_hand" in features.columns:
+        out["log_park_k_factor_by_hand"] = features["log_park_k_factor_by_hand"]
+    elif "park_k_factor" in features.columns:
+        out["log_park_k_factor_by_hand"] = np.log(features["park_k_factor"].clip(lower=1e-6))
     if "umpire_k_zone_factor" in features.columns:
         out["log_umpire_k_factor"] = np.log(features["umpire_k_zone_factor"].clip(lower=1e-6))
 

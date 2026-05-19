@@ -5,16 +5,28 @@ Same shape as :mod:`features_bf`: each builder is a pure function returning
 multiplicative) so the result is guaranteed to stay in (0, 1), then clipped
 to [P_K_PA_FLOOR, P_K_PA_CEIL].
 
-Adjustments are log-odds shifts:
-    logit(p) = logit(baseline) + Σ shifts
-where each shift is ``log(rate / league_anchor)`` or a calibrated coefficient
-× delta.
+Phase 3-v2c-iii rewrite
+-----------------------
+Drops the bootstrap-failing / sign-stable-wrong features from the prior
+overnight fit (pitcher_k_pct_30d_delta, pitcher_csw_pct_30d_delta,
+pitcher_putaway_pct_delta, lineup_chase_delta) and the aggregated lineup
+features (lineup_k_pct_vs_hand, lineup_zone_contact_pct, lineup_chase_rate)
+that are now computed per-batter by :mod:`features_per_batter`.
 
-Required features (any missing -> skip): pitcher_k_pct_season_shrunk,
-lineup_k_pct_vs_hand, park_k_factor.
+Promotes pitcher_csw_pct_season to PRIMARY K-skill feature. Adds
+pitcher_archetype passthrough for downstream TTO multiplier lookup.
+Park K factor now uses bundle.park_k_factors_by_hand with pitcher
+handedness selection.
 
-Calibration coefficients are first-pass placeholders. Phase 4 will re-derive
-them from the regression of observed K rates against feature values.
+Survivors (bootstrap-stable in the prior fit):
+- pitcher_k_pct_delta (1.00) — kept as SECONDARY K-rate signal
+- pitcher_velocity_trend_z (97%) — kept
+- pitcher_chase_whiff_pct_30d_delta (82%) — kept under observation
+- league_k_pct_vs_hand (1.00) — anchor
+
+Calibration coefficients remain first-pass placeholders. Phase 4c-v2 will
+re-derive them from the regression of observed K rates against the new
+feature values.
 """
 from __future__ import annotations
 
@@ -23,7 +35,6 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from .features_bf import (
-    BATTING_ORDER_PA_WEIGHTS,
     _count_pa,
     _count_pitches,
     _is_dome,
@@ -61,21 +72,21 @@ OUT_OF_ZONE_ZONES = frozenset({11, 12, 13, 14})
 FASTBALL_TYPES = frozenset({"FF", "SI", "FC"})
 
 # Bayesian shrink priors
-K_PRIOR_K_PCT_SEASON = 80      # PA strength of prior_year prior
-K_PRIOR_K_PCT_30D = 30
-K_PRIOR_CSW = 100              # pitches (also the spec's threshold)
-K_PRIOR_LINEUP_BATTER = 50     # PA
+K_PRIOR_K_PCT_SEASON = 80      # PA strength of prior_year prior for K%
+K_PRIOR_CSW_SEASON = 400       # pitches; prior strength for season CSW%
+MIN_PITCHES_CSW_SEASON = 200   # season pitches needed to trust observed CSW%
+MIN_PITCHES_CSW_PRIOR = 800    # prior-year pitches required for prior-only fallback
 
-# Log-odds coefficients (per unit-delta above an anchor)
-COEFF_CSW = 0.6                # log-odds shift per 1.0 in CSW% delta
-COEFF_CHASE_WHIFF = 0.4
+# Log-odds coefficients (placeholders — replaced by Phase 4c-v2 fit)
+COEFF_K_PCT_DELTA = 4.0        # primary K-rate delta (per unit raw rate)
+COEFF_CSW_SEASON_DELTA = 4.0   # primary CSW delta (per unit raw rate)
 COEFF_VELOCITY_Z = 0.04        # per +1 Z fastball velo
-COEFF_PUTAWAY = 0.5
-COEFF_ZONE_CONTACT = -0.6      # higher contact = lower K
-COEFF_CHASE_RATE = 0.4
+COEFF_CHASE_WHIFF = 0.4        # per unit raw rate above league anchor
 
-ANCHOR_CSW = 0.28              # leaguewide CSW%
-ANCHOR_PUTAWAY = 0.40          # share of pitcher's most-used 2-strike pitch type
+# League CSW% used as a fallback anchor when league_averages.csw_pct is
+# missing. Roughly the current MLB league average; close enough for placeholder
+# composition until Phase 4a re-derives the actual csw_pct field per split.
+LEAGUE_CSW_ANCHOR_FALLBACK = 0.28
 
 
 # ---- Pitcher-side builders -------------------------------------------------
@@ -110,21 +121,6 @@ def pitcher_k_pct_season_shrunk(
     return shrunk, None
 
 
-def pitcher_k_pct_30d_blended(
-    bundle: ProjectionBundle, ctx: ProjectionContext
-) -> tuple[float | None, str | None]:
-    p = bundle.pitcher
-    k_30d, pa_30d = _pitcher_k_pct(p.statcast_pitches_30d)
-    if pa_30d == 0:
-        return None, "no PAs in 30d window"
-    season_rate, _ = pitcher_k_pct_season_shrunk(bundle, ctx)
-    if season_rate is None:
-        return None, "no season anchor for 30d blend"
-    k_prior = K_PRIOR_K_PCT_30D
-    shrunk = (k_30d + season_rate * k_prior) / (pa_30d + k_prior)
-    return shrunk, None
-
-
 def _csw_count(rows: Iterable[dict]) -> tuple[int, int]:
     pitches = 0
     csw = 0
@@ -135,23 +131,74 @@ def _csw_count(rows: Iterable[dict]) -> tuple[int, int]:
     return csw, pitches
 
 
-def pitcher_csw_pct_30d(
+def pitcher_csw_pct_season(
     bundle: ProjectionBundle, ctx: ProjectionContext
 ) -> tuple[float | None, str | None]:
+    """Pitcher's season-to-date CSW% shrunk to prior-year.
+
+    - If season pitches >= MIN_PITCHES_CSW_SEASON (200): shrink to prior-year
+      CSW% with k_prior=K_PRIOR_CSW_SEASON (400).
+    - Elif prior-year pitches >= MIN_PITCHES_CSW_PRIOR (800): use prior-year
+      directly (mark with no missing_reason — prior is reliable on its own).
+    - Else: return None with "insufficient CSW sample".
+    """
     p = bundle.pitcher
-    csw_30d, pitches_30d = _csw_count(p.statcast_pitches_30d)
-    if pitches_30d == 0:
-        return None, "no pitches in 30d window"
-    raw_30d = csw_30d / pitches_30d
-    if pitches_30d >= K_PRIOR_CSW:
-        return raw_30d, None
     csw_s, pitches_s = _csw_count(p.statcast_pitches_season)
-    if pitches_s == 0:
-        return raw_30d, None
-    season_rate = csw_s / pitches_s
-    k_prior = K_PRIOR_CSW
-    shrunk = (csw_30d + season_rate * k_prior) / (pitches_30d + k_prior)
-    return shrunk, None
+    csw_p, pitches_p = _csw_count(p.statcast_pitches_prior_year)
+
+    if pitches_s >= MIN_PITCHES_CSW_SEASON:
+        season_rate = csw_s / pitches_s
+        prior_rate = csw_p / pitches_p if pitches_p > 0 else None
+        if prior_rate is None:
+            return season_rate, None
+        k_prior = K_PRIOR_CSW_SEASON
+        shrunk = (csw_s + prior_rate * k_prior) / (pitches_s + k_prior)
+        return shrunk, None
+
+    if pitches_p >= MIN_PITCHES_CSW_PRIOR:
+        return csw_p / pitches_p, None
+
+    return None, "insufficient CSW sample"
+
+
+def _league_csw_anchor(
+    bundle: ProjectionBundle, ctx: ProjectionContext
+) -> float | None:
+    """League CSW% for the pitcher's hand, averaged across batter-hands by
+    league mix (~60% R / 40% L). Falls back to LEAGUE_CSW_ANCHOR_FALLBACK
+    when league_averages lacks csw_pct (pre-Phase-3-v2c-iii files)."""
+    hand = bundle.pitcher.handedness
+    if hand not in ("L", "R"):
+        avgs = (ctx.league_avgs.r_vs_r, ctx.league_avgs.r_vs_l,
+                ctx.league_avgs.l_vs_r, ctx.league_avgs.l_vs_l)
+    elif hand == "R":
+        avgs = (ctx.league_avgs.r_vs_r, ctx.league_avgs.l_vs_r)
+        weights = (0.6, 0.4)
+    else:
+        avgs = (ctx.league_avgs.r_vs_l, ctx.league_avgs.l_vs_l)
+        weights = (0.6, 0.4)
+
+    csw_vals = [a.csw_pct for a in avgs if a.csw_pct is not None]
+    if not csw_vals:
+        return None
+    if hand in ("L", "R") and len(csw_vals) == 2:
+        return csw_vals[0] * weights[0] + csw_vals[1] * weights[1]
+    return sum(csw_vals) / len(csw_vals)
+
+
+def pitcher_csw_pct_season_delta(
+    bundle: ProjectionBundle, ctx: ProjectionContext
+) -> tuple[float | None, str | None]:
+    """Pitcher CSW% minus league CSW% (handedness-mixed). The delta
+    re-parameterization removes the level-vs-individual collinearity that
+    plagued the prior fit."""
+    csw, csw_miss = pitcher_csw_pct_season(bundle, ctx)
+    if csw is None:
+        return None, csw_miss
+    league = _league_csw_anchor(bundle, ctx)
+    if league is None:
+        return None, "league CSW not available"
+    return csw - league, None
 
 
 def _chase_whiff_counts(rows: Iterable[dict]) -> tuple[int, int]:
@@ -183,13 +230,13 @@ def pitcher_chase_whiff_pct_30d(
     if chases_30d == 0:
         return None, "no out-of-zone swings in 30d window"
     raw_30d = whiffs_30d / chases_30d
-    if chases_30d >= K_PRIOR_CSW:
+    if chases_30d >= 100:
         return raw_30d, None
     whiffs_s, chases_s = _chase_whiff_counts(p.statcast_pitches_season)
     if chases_s == 0:
         return raw_30d, None
     season_rate = whiffs_s / chases_s
-    k_prior = K_PRIOR_CSW
+    k_prior = 100
     shrunk = (whiffs_30d + season_rate * k_prior) / (chases_30d + k_prior)
     return shrunk, None
 
@@ -197,9 +244,7 @@ def pitcher_chase_whiff_pct_30d(
 def pitcher_velocity_trend_3starts(
     bundle: ProjectionBundle, ctx: ProjectionContext
 ) -> tuple[float | None, str | None]:
-    """Z-score: (last 3 starts' fastball velo) - (season fastball mean) / season SD.
-
-    Returns None if <30 fastballs in last 3 starts."""
+    """Z-score: (last 3 starts' fastball velo) - (season fastball mean) / season SD."""
     p = bundle.pitcher
     fastballs_recent = _fastball_velos_last_n_starts(p.statcast_pitches_30d, n=3)
     if len(fastballs_recent) < 30:
@@ -209,7 +254,6 @@ def pitcher_velocity_trend_3starts(
                  if r.get("pitch_type") in FASTBALL_TYPES
                  and isinstance(r.get("release_speed"), (int, float))]
     if not fb_season:
-        # Try prior year.
         fb_season = [r["release_speed"] for r in p.statcast_pitches_prior_year
                      if r.get("pitch_type") in FASTBALL_TYPES
                      and isinstance(r.get("release_speed"), (int, float))]
@@ -237,7 +281,6 @@ def _fastball_velos_last_n_starts(rows, *, n: int) -> list[float]:
         if gp is None:
             continue
         by_game.setdefault(int(gp), []).append(float(rs))
-    # last N starts = highest N game_pks (Statcast game_pks increase chronologically)
     last_n_games = sorted(by_game.keys())[-n:]
     out: list[float] = []
     for g in last_n_games:
@@ -245,221 +288,116 @@ def _fastball_velos_last_n_starts(rows, *, n: int) -> list[float]:
     return out
 
 
-def pitcher_putaway_pitch_concentration(
+def pitcher_archetype_feature(
     bundle: ProjectionBundle, ctx: ProjectionContext
-) -> tuple[float | None, str | None]:
-    """Share of two-strike pitches that are the pitcher's most-used 2K pitch type."""
-    p = bundle.pitcher
-    season_rows = [r for r in p.statcast_pitches_season if _is_two_strike(r)]
-    if len(season_rows) >= 50:
-        return _putaway_share(season_rows), None
-    # Shrink with prior year if season sample is small.
-    prior_rows = [r for r in p.statcast_pitches_prior_year if _is_two_strike(r)]
-    if not season_rows and not prior_rows:
-        return None, "no two-strike pitches in season or prior year"
-    if not prior_rows:
-        return _putaway_share(season_rows), None
-    # Take prior year's share as the anchor with k_prior=50 pitches.
-    season_share = _putaway_share(season_rows) if season_rows else 0.0
-    prior_share = _putaway_share(prior_rows)
-    n_s = len(season_rows)
-    k_prior = 50
-    shrunk = (season_share * n_s + prior_share * k_prior) / (n_s + k_prior)
-    return shrunk, None
+) -> tuple[str | None, str | None]:
+    """Passthrough of the pitcher's archetype for downstream TTO multiplier
+    lookup. Reads :attr:`ProjectionBundle.pitcher_archetype`.
 
+    Returns the archetype name as a string. Not a regression feature — the
+    projector consumes it to pick a TTO multiplier per PA, not as an input
+    to the logistic composition.
 
-def _is_two_strike(row: dict) -> bool:
-    return row.get("strikes") == 2
-
-
-def _putaway_share(rows: list[dict]) -> float:
-    if not rows:
-        return 0.0
-    counts: dict[str, int] = {}
-    for r in rows:
-        pt = r.get("pitch_type") or "UNK"
-        counts[pt] = counts.get(pt, 0) + 1
-    if not counts:
-        return 0.0
-    top = max(counts.values())
-    return top / sum(counts.values())
-
-
-# ---- Lineup builders -------------------------------------------------------
-
-
-def _on_base_or_k_count(rows: list[dict]) -> tuple[int, int, int]:
-    """For a list of PA-terminal rows return (n_pa, n_k, n_on_base)."""
-    n = len(rows)
-    k = sum(1 for r in rows if r.get("events") in K_EVENTS)
-    return n, k, sum(1 for r in rows if r.get("events") in {
-        "walk", "hit_by_pitch", "single", "double", "triple", "home_run",
-    })
-
-
-def lineup_k_pct_vs_hand(
-    bundle: ProjectionBundle, ctx: ProjectionContext
-) -> tuple[float | None, str | None]:
-    if not bundle.opposing_lineup.lineup_posted:
-        return None, "lineup not posted"
-    pitcher_hand = bundle.pitcher.handedness
-    if pitcher_hand not in ("L", "R"):
-        return None, "pitcher handedness unknown"
-
-    weights, weighted = [], []
-    for batter in bundle.opposing_lineup.batters:
-        avg = ctx.league_avgs.lookup(batter.handedness, pitcher_hand)
-        if avg is None:
-            continue
-        rows = _pa_event_rows(
-            [r for r in batter.statcast_pa_season if r.get("p_throws") == pitcher_hand]
-        )
-        n_pa = len(rows)
-        k_count = sum(1 for r in rows if r.get("events") in K_EVENTS)
-        if n_pa == 0:
-            batter_k_pct = avg.k_pct
-        elif n_pa < K_PRIOR_LINEUP_BATTER:
-            batter_k_pct = (k_count + avg.k_pct * K_PRIOR_LINEUP_BATTER) / (
-                n_pa + K_PRIOR_LINEUP_BATTER
-            )
-        else:
-            batter_k_pct = k_count / n_pa
-        w = BATTING_ORDER_PA_WEIGHTS.get(batter.batting_order, 4.0)
-        weights.append(w)
-        weighted.append(batter_k_pct * w)
-
-    if not weights:
-        return None, "no batters with resolvable handedness"
-    return sum(weighted) / sum(weights), None
-
-
-def _zone_contact_per_batter(
-    rows: Iterable[dict],
-) -> tuple[int, int]:
-    """Return (contacts, in_zone_swings)."""
-    swings = 0
-    contacts = 0
-    for r in rows:
-        zone = r.get("zone")
-        try:
-            z = int(zone) if zone is not None else None
-        except (TypeError, ValueError):
-            continue
-        if z not in IN_ZONE_ZONES:
-            continue
-        desc = r.get("description")
-        if desc not in SWING_DESCRIPTIONS:
-            continue
-        swings += 1
-        if desc not in SWINGING_STRIKE_DESCRIPTIONS:
-            contacts += 1
-    return contacts, swings
-
-
-def lineup_zone_contact_pct(
-    bundle: ProjectionBundle, ctx: ProjectionContext
-) -> tuple[float | None, str | None]:
-    if not bundle.opposing_lineup.lineup_posted:
-        return None, "lineup not posted"
-    pitcher_hand = bundle.pitcher.handedness
-    if pitcher_hand not in ("L", "R"):
-        return None, "pitcher handedness unknown"
-
-    weights, weighted = [], []
-    for batter in bundle.opposing_lineup.batters:
-        avg = ctx.league_avgs.lookup(batter.handedness, pitcher_hand)
-        if avg is None:
-            continue
-        rows = [
-            r for r in batter.statcast_pa_season if r.get("p_throws") == pitcher_hand
-        ]
-        contacts, swings = _zone_contact_per_batter(rows)
-        if swings == 0:
-            batter_rate = avg.zone_contact_pct
-        elif swings < K_PRIOR_LINEUP_BATTER:
-            batter_rate = (contacts + avg.zone_contact_pct * K_PRIOR_LINEUP_BATTER) / (
-                swings + K_PRIOR_LINEUP_BATTER
-            )
-        else:
-            batter_rate = contacts / swings
-        w = BATTING_ORDER_PA_WEIGHTS.get(batter.batting_order, 4.0)
-        weights.append(w)
-        weighted.append(batter_rate * w)
-
-    if not weights:
-        return None, "no batters with resolvable handedness"
-    return sum(weighted) / sum(weights), None
-
-
-def _chase_rate_per_batter(rows: Iterable[dict]) -> tuple[int, int]:
-    """Return (swings_at_ooz, pitches_ooz)."""
-    swings = 0
-    ooz_pitches = 0
-    for r in rows:
-        zone = r.get("zone")
-        try:
-            z = int(zone) if zone is not None else None
-        except (TypeError, ValueError):
-            continue
-        if z not in OUT_OF_ZONE_ZONES:
-            continue
-        ooz_pitches += 1
-        if r.get("description") in SWING_DESCRIPTIONS:
-            swings += 1
-    return swings, ooz_pitches
-
-
-def lineup_chase_rate(
-    bundle: ProjectionBundle, ctx: ProjectionContext
-) -> tuple[float | None, str | None]:
-    if not bundle.opposing_lineup.lineup_posted:
-        return None, "lineup not posted"
-    pitcher_hand = bundle.pitcher.handedness
-    if pitcher_hand not in ("L", "R"):
-        return None, "pitcher handedness unknown"
-
-    weights, weighted = [], []
-    for batter in bundle.opposing_lineup.batters:
-        avg = ctx.league_avgs.lookup(batter.handedness, pitcher_hand)
-        if avg is None:
-            continue
-        rows = [
-            r for r in batter.statcast_pa_season if r.get("p_throws") == pitcher_hand
-        ]
-        swings, ooz = _chase_rate_per_batter(rows)
-        if ooz == 0:
-            batter_rate = avg.chase_rate
-        elif ooz < K_PRIOR_LINEUP_BATTER:
-            batter_rate = (swings + avg.chase_rate * K_PRIOR_LINEUP_BATTER) / (
-                ooz + K_PRIOR_LINEUP_BATTER
-            )
-        else:
-            batter_rate = swings / ooz
-        w = BATTING_ORDER_PA_WEIGHTS.get(batter.batting_order, 4.0)
-        weights.append(w)
-        weighted.append(batter_rate * w)
-
-    if not weights:
-        return None, "no batters with resolvable handedness"
-    return sum(weighted) / sum(weights), None
+    Missing reasons:
+    - "no pitcher_archetype in bundle" when the contract field is None
+    - "archetype unknown" when the field is the unknown sentinel
+    """
+    pa = bundle.pitcher_archetype
+    if pa is None:
+        return None, "no pitcher_archetype in bundle"
+    if pa.archetype == "unknown":
+        return None, "archetype unknown"
+    return pa.archetype, None
 
 
 # ---- Park / umpire ---------------------------------------------------------
 
 
-def park_k_factor(
+def log_park_k_factor_by_hand(
     bundle: ProjectionBundle, ctx: ProjectionContext
 ) -> tuple[float | None, str | None]:
+    """log(park K factor) using the L/R-split factor selected by pitcher hand.
+
+    - bundle.park_k_factors_by_hand present: pick factor_lhp / factor_rhp /
+      factor_combined based on bundle.pitcher.handedness.
+    - bundle.park_k_factors_by_hand None (legacy bundle): fall back to the
+      ctx.park_k_factors single-factor lookup. This is the only remaining
+      place that reads the old shape, for backward compat with bundles that
+      predate Phase 3-v2c-i.
+    """
+    pk = bundle.park_k_factors_by_hand
+    if pk is not None:
+        factor = pk.for_pitcher_hand(bundle.pitcher.handedness)
+        return math.log(max(1e-6, factor)), None
+    # Legacy fallback path.
     factor = ctx.park_k_factors.get(bundle.game_context.venue_id)
     if factor is None:
-        return None, f"venue_id={bundle.game_context.venue_id} not in park_k_factors"
-    return factor, None
+        return None, (
+            f"venue_id={bundle.game_context.venue_id} not in park_k_factors "
+            f"and bundle has no park_k_factors_by_hand"
+        )
+    return math.log(max(1e-6, factor)), None
 
 
 def umpire_k_zone_factor(
     bundle: ProjectionBundle, ctx: ProjectionContext
 ) -> tuple[float | None, str | None]:
     return ctx.umpire_k_factors.get(bundle.game_context.umpire_id), None
+
+
+# ---- Anchors (kept for Phase 4c fit script consumption) --------------------
+#
+# These helpers are imported by scripts/fit_feature_coefficients.py to write
+# league baseline columns into the design matrix (so reparameterize_kpa can
+# center deltas). They remain accessible even though the public lineup_*
+# builders that originally used them have been removed in Phase 3-v2c-iii.
+# When Phase 4c-v2 runs, the design matrix will simply have fewer columns
+# (no aggregated lineup features), and reparameterize_kpa will skip the
+# obsolete delta entries.
+
+
+def _league_anchor_k_pct(bundle: ProjectionBundle, ctx: ProjectionContext) -> float:
+    """Leaguewide K% vs the pitcher's hand (or overall if unknown)."""
+    hand = bundle.pitcher.handedness
+    if hand == "R":
+        return 0.6 * ctx.league_avgs.r_vs_r.k_pct + 0.4 * ctx.league_avgs.l_vs_r.k_pct
+    if hand == "L":
+        return 0.6 * ctx.league_avgs.r_vs_l.k_pct + 0.4 * ctx.league_avgs.l_vs_l.k_pct
+    return (
+        ctx.league_avgs.r_vs_r.k_pct + ctx.league_avgs.r_vs_l.k_pct
+        + ctx.league_avgs.l_vs_r.k_pct + ctx.league_avgs.l_vs_l.k_pct
+    ) / 4
+
+
+def _lineup_zone_contact_anchor(
+    bundle: ProjectionBundle, ctx: ProjectionContext
+) -> float:
+    """Legacy helper retained for the Phase 4c fit script. Returns league
+    zone-contact% by pitcher hand (mixed batter hand)."""
+    hand = bundle.pitcher.handedness
+    if hand == "R":
+        return 0.6 * ctx.league_avgs.r_vs_r.zone_contact_pct + 0.4 * ctx.league_avgs.l_vs_r.zone_contact_pct
+    if hand == "L":
+        return 0.6 * ctx.league_avgs.r_vs_l.zone_contact_pct + 0.4 * ctx.league_avgs.l_vs_l.zone_contact_pct
+    return (
+        ctx.league_avgs.r_vs_r.zone_contact_pct + ctx.league_avgs.r_vs_l.zone_contact_pct
+        + ctx.league_avgs.l_vs_r.zone_contact_pct + ctx.league_avgs.l_vs_l.zone_contact_pct
+    ) / 4
+
+
+def _lineup_chase_anchor(
+    bundle: ProjectionBundle, ctx: ProjectionContext
+) -> float:
+    """Legacy helper retained for the Phase 4c fit script."""
+    hand = bundle.pitcher.handedness
+    if hand == "R":
+        return 0.6 * ctx.league_avgs.r_vs_r.chase_rate + 0.4 * ctx.league_avgs.l_vs_r.chase_rate
+    if hand == "L":
+        return 0.6 * ctx.league_avgs.r_vs_l.chase_rate + 0.4 * ctx.league_avgs.l_vs_l.chase_rate
+    return (
+        ctx.league_avgs.r_vs_r.chase_rate + ctx.league_avgs.r_vs_l.chase_rate
+        + ctx.league_avgs.l_vs_r.chase_rate + ctx.league_avgs.l_vs_l.chase_rate
+    ) / 4
 
 
 # ---- Composition -----------------------------------------------------------
@@ -475,49 +413,6 @@ def _sigmoid(x: float) -> float:
     return 1.0 / (1.0 + math.exp(-x))
 
 
-def _league_anchor_k_pct(bundle: ProjectionBundle, ctx: ProjectionContext) -> float:
-    """Leaguewide K% vs the pitcher's hand (or overall if unknown)."""
-    hand = bundle.pitcher.handedness
-    if hand == "R":
-        # Average across batter-hands; use league mix (rough 60/40 R/L)
-        return 0.6 * ctx.league_avgs.r_vs_r.k_pct + 0.4 * ctx.league_avgs.l_vs_r.k_pct
-    if hand == "L":
-        return 0.6 * ctx.league_avgs.r_vs_l.k_pct + 0.4 * ctx.league_avgs.l_vs_l.k_pct
-    # Fallback: overall average across all four splits.
-    return (
-        ctx.league_avgs.r_vs_r.k_pct + ctx.league_avgs.r_vs_l.k_pct
-        + ctx.league_avgs.l_vs_r.k_pct + ctx.league_avgs.l_vs_l.k_pct
-    ) / 4
-
-
-def _lineup_zone_contact_anchor(
-    bundle: ProjectionBundle, ctx: ProjectionContext
-) -> float:
-    hand = bundle.pitcher.handedness
-    if hand == "R":
-        return 0.6 * ctx.league_avgs.r_vs_r.zone_contact_pct + 0.4 * ctx.league_avgs.l_vs_r.zone_contact_pct
-    if hand == "L":
-        return 0.6 * ctx.league_avgs.r_vs_l.zone_contact_pct + 0.4 * ctx.league_avgs.l_vs_l.zone_contact_pct
-    return (
-        ctx.league_avgs.r_vs_r.zone_contact_pct + ctx.league_avgs.r_vs_l.zone_contact_pct
-        + ctx.league_avgs.l_vs_r.zone_contact_pct + ctx.league_avgs.l_vs_l.zone_contact_pct
-    ) / 4
-
-
-def _lineup_chase_anchor(
-    bundle: ProjectionBundle, ctx: ProjectionContext
-) -> float:
-    hand = bundle.pitcher.handedness
-    if hand == "R":
-        return 0.6 * ctx.league_avgs.r_vs_r.chase_rate + 0.4 * ctx.league_avgs.l_vs_r.chase_rate
-    if hand == "L":
-        return 0.6 * ctx.league_avgs.r_vs_l.chase_rate + 0.4 * ctx.league_avgs.l_vs_l.chase_rate
-    return (
-        ctx.league_avgs.r_vs_r.chase_rate + ctx.league_avgs.r_vs_l.chase_rate
-        + ctx.league_avgs.l_vs_r.chase_rate + ctx.league_avgs.l_vs_l.chase_rate
-    ) / 4
-
-
 @dataclass(frozen=True)
 class PKPAResult:
     p_k_pa: float | None
@@ -530,109 +425,93 @@ class PKPAResult:
 def compute_p_k_pa(
     bundle: ProjectionBundle, ctx: ProjectionContext
 ) -> PKPAResult:
+    """Compose P(K|PA) from the Phase 3-v2c-iii feature set.
+
+    Baseline: league K% vs pitcher hand. Each feature contributes an
+    additive log-odds shift. Placeholder coefficients until Phase 4c-v2.
+
+    Required: pitcher_csw_pct_season (PRIMARY K-skill),
+    league_k_pct_vs_hand (anchor), log_park_k_factor_by_hand.
+    Optional: pitcher_k_pct_season_shrunk (becomes pitcher_k_pct_delta),
+    pitcher_velocity_trend_3starts, pitcher_chase_whiff_pct_30d,
+    umpire_k_zone_factor.
+    Side-channel: pitcher_archetype_feature (carried in used_features for
+    the projector; does NOT contribute to the logit composition).
+    """
     used: dict = {}
 
-    # Required: pitcher_k_pct_season_shrunk
-    base_val, base_miss = pitcher_k_pct_season_shrunk(bundle, ctx)
-    if base_val is None:
-        return PKPAResult(
-            p_k_pa=None, p_k_pa_raw=None, used_features={},
-            skipped=True, skip_reason=f"pitcher_k_pct_season_shrunk: {base_miss}",
-        )
-    used["pitcher_k_pct_season_shrunk"] = base_val
+    # Anchor: league K% vs hand
+    league_k = _league_anchor_k_pct(bundle, ctx)
+    used["league_k_pct_vs_hand"] = league_k
 
-    # Required: lineup_k_pct_vs_hand
-    lkp_val, lkp_miss = lineup_k_pct_vs_hand(bundle, ctx)
-    if lkp_val is None:
+    # Required: pitcher_csw_pct_season — primary K-skill
+    csw_val, csw_miss = pitcher_csw_pct_season(bundle, ctx)
+    if csw_val is None:
         return PKPAResult(
             p_k_pa=None, p_k_pa_raw=None, used_features=used,
-            skipped=True, skip_reason=f"lineup_k_pct_vs_hand: {lkp_miss}",
+            skipped=True, skip_reason=f"pitcher_csw_pct_season: {csw_miss}",
         )
-    used["lineup_k_pct_vs_hand"] = lkp_val
+    used["pitcher_csw_pct_season"] = csw_val
 
-    # Required: park_k_factor
-    pkf_val, pkf_miss = park_k_factor(bundle, ctx)
-    if pkf_val is None:
+    csw_delta_val, csw_delta_miss = pitcher_csw_pct_season_delta(bundle, ctx)
+    if csw_delta_val is not None:
+        used["pitcher_csw_pct_season_delta"] = csw_delta_val
+
+    # Required: log_park_k_factor_by_hand
+    lpk_val, lpk_miss = log_park_k_factor_by_hand(bundle, ctx)
+    if lpk_val is None:
         return PKPAResult(
             p_k_pa=None, p_k_pa_raw=None, used_features=used,
-            skipped=True, skip_reason=f"park_k_factor: {pkf_miss}",
+            skipped=True, skip_reason=f"log_park_k_factor_by_hand: {lpk_miss}",
         )
-    used["park_k_factor"] = pkf_val
+    used["log_park_k_factor_by_hand"] = lpk_val
 
-    # Optional features
-    k30_val, _ = pitcher_k_pct_30d_blended(bundle, ctx)
-    if k30_val is not None:
-        used["pitcher_k_pct_30d_blended"] = k30_val
-    csw_val, _ = pitcher_csw_pct_30d(bundle, ctx)
-    if csw_val is not None:
-        used["pitcher_csw_pct_30d"] = csw_val
-    cw_val, _ = pitcher_chase_whiff_pct_30d(bundle, ctx)
-    if cw_val is not None:
-        used["pitcher_chase_whiff_pct_30d"] = cw_val
+    # Optional: pitcher_k_pct_delta (secondary K-rate signal)
+    k_season, _ = pitcher_k_pct_season_shrunk(bundle, ctx)
+    if k_season is not None:
+        used["pitcher_k_pct_season_shrunk"] = k_season
+        used["pitcher_k_pct_delta"] = k_season - league_k
+
+    # Optional: velocity Z trend
     velo_val, _ = pitcher_velocity_trend_3starts(bundle, ctx)
     if velo_val is not None:
-        used["pitcher_velocity_trend_3starts"] = velo_val
-    pa_val, _ = pitcher_putaway_pitch_concentration(bundle, ctx)
-    if pa_val is not None:
-        used["pitcher_putaway_pitch_concentration"] = pa_val
-    zc_val, _ = lineup_zone_contact_pct(bundle, ctx)
-    if zc_val is not None:
-        used["lineup_zone_contact_pct"] = zc_val
-    chase_val, _ = lineup_chase_rate(bundle, ctx)
-    if chase_val is not None:
-        used["lineup_chase_rate"] = chase_val
+        used["pitcher_velocity_trend_z"] = velo_val
+
+    # Optional: chase-whiff delta from a 22% anchor (league chase-whiff is
+    # ~22%; we'd use league_avgs here once Phase 4a derives it)
+    cw_val, _ = pitcher_chase_whiff_pct_30d(bundle, ctx)
+    if cw_val is not None:
+        used["pitcher_chase_whiff_pct_30d_delta"] = cw_val - 0.22
+
+    # Optional: umpire K factor
     ump_val, _ = umpire_k_zone_factor(bundle, ctx)
     if ump_val is not None:
         used["umpire_k_zone_factor"] = ump_val
 
-    # Compose in log-odds space.
-    # Blend pitcher baseline: 70% season, 30% 30d when both present.
-    if "pitcher_k_pct_30d_blended" in used:
-        baseline = 0.7 * base_val + 0.3 * used["pitcher_k_pct_30d_blended"]
-    else:
-        baseline = base_val
-    logit_p = _logit(baseline)
+    # Side-channel: pitcher archetype (for projector TTO lookup; not in logit)
+    arch_val, _ = pitcher_archetype_feature(bundle, ctx)
+    if arch_val is not None:
+        used["pitcher_archetype"] = arch_val
 
-    # Lineup K% vs hand: log ratio against league anchor (handedness-adjusted).
-    anchor_k = _league_anchor_k_pct(bundle, ctx)
-    if anchor_k > 0:
-        logit_p += math.log(max(1e-6, used["lineup_k_pct_vs_hand"] / anchor_k))
+    # ---- Compose in log-odds space ----
+    logit_p = _logit(league_k)
 
-    # Park K factor: already a multiplier centered at 1.0 -> log directly.
-    logit_p += math.log(max(1e-6, used["park_k_factor"]))
+    if "pitcher_k_pct_delta" in used:
+        logit_p += COEFF_K_PCT_DELTA * used["pitcher_k_pct_delta"]
 
-    # Umpire K factor.
+    if "pitcher_csw_pct_season_delta" in used:
+        logit_p += COEFF_CSW_SEASON_DELTA * used["pitcher_csw_pct_season_delta"]
+
+    logit_p += used["log_park_k_factor_by_hand"]
+
     if "umpire_k_zone_factor" in used:
         logit_p += math.log(max(1e-6, used["umpire_k_zone_factor"]))
 
-    # CSW: linear delta above anchor.
-    if "pitcher_csw_pct_30d" in used:
-        logit_p += COEFF_CSW * (used["pitcher_csw_pct_30d"] - ANCHOR_CSW)
+    if "pitcher_velocity_trend_z" in used:
+        logit_p += COEFF_VELOCITY_Z * used["pitcher_velocity_trend_z"]
 
-    # Chase-whiff: anchored at the same CSW reference for simplicity.
-    if "pitcher_chase_whiff_pct_30d" in used:
-        # league chase-whiff is ~22%; treat as ANCHOR_CSW - 6pp
-        logit_p += COEFF_CHASE_WHIFF * (used["pitcher_chase_whiff_pct_30d"] - 0.22)
-
-    # Velocity trend: per +1 Z.
-    if "pitcher_velocity_trend_3starts" in used:
-        logit_p += COEFF_VELOCITY_Z * used["pitcher_velocity_trend_3starts"]
-
-    # Putaway concentration.
-    if "pitcher_putaway_pitch_concentration" in used:
-        logit_p += COEFF_PUTAWAY * (
-            used["pitcher_putaway_pitch_concentration"] - ANCHOR_PUTAWAY
-        )
-
-    # Lineup zone contact (NEGATIVE coefficient: higher contact -> lower K).
-    if "lineup_zone_contact_pct" in used:
-        anchor_zc = _lineup_zone_contact_anchor(bundle, ctx)
-        logit_p += COEFF_ZONE_CONTACT * (used["lineup_zone_contact_pct"] - anchor_zc)
-
-    # Lineup chase rate.
-    if "lineup_chase_rate" in used:
-        anchor_chase = _lineup_chase_anchor(bundle, ctx)
-        logit_p += COEFF_CHASE_RATE * (used["lineup_chase_rate"] - anchor_chase)
+    if "pitcher_chase_whiff_pct_30d_delta" in used:
+        logit_p += COEFF_CHASE_WHIFF * used["pitcher_chase_whiff_pct_30d_delta"]
 
     raw = _sigmoid(logit_p)
     p_clipped = max(P_K_PA_FLOOR, min(P_K_PA_CEIL, raw))

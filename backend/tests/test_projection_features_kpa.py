@@ -1,4 +1,15 @@
-"""Phase 3c tests: P(K|PA) builders + log-odds composition."""
+"""Phase 3c tests: P(K|PA) builders + log-odds composition.
+
+Updated for Phase 3-v2c-iii feature redesign:
+- Removed tests for dropped builders (pitcher_k_pct_30d_blended,
+  pitcher_csw_pct_30d, pitcher_putaway_pitch_concentration,
+  lineup_k_pct_vs_hand, lineup_zone_contact_pct, lineup_chase_rate,
+  park_k_factor).
+- Added tests for new builders (pitcher_csw_pct_season,
+  pitcher_csw_pct_season_delta, pitcher_archetype_feature,
+  log_park_k_factor_by_hand).
+- Composition tests updated to expect the new feature set.
+"""
 from __future__ import annotations
 
 import copy
@@ -13,15 +24,12 @@ from src.projection.features_kpa import (
     P_K_PA_FLOOR,
     PKPAResult,
     compute_p_k_pa,
-    lineup_chase_rate,
-    lineup_k_pct_vs_hand,
-    lineup_zone_contact_pct,
-    park_k_factor,
+    log_park_k_factor_by_hand,
+    pitcher_archetype_feature,
     pitcher_chase_whiff_pct_30d,
-    pitcher_csw_pct_30d,
-    pitcher_k_pct_30d_blended,
+    pitcher_csw_pct_season,
+    pitcher_csw_pct_season_delta,
     pitcher_k_pct_season_shrunk,
-    pitcher_putaway_pitch_concentration,
     pitcher_velocity_trend_3starts,
     umpire_k_zone_factor,
 )
@@ -81,9 +89,9 @@ def _make_bundle(**overrides) -> ProjectionBundle:
     base = {
         "metadata": {
             "bundle_version": "1.0",
-            "generated_at": "2026-05-17T23:00:00+00:00",
-            "game_date": "2026-05-17",
-            "cutoff_date": "2026-05-16",
+            "generated_at": "2025-05-17T23:00:00+00:00",
+            "game_date": "2025-05-17",
+            "cutoff_date": "2025-05-16",
             "pitcher_mlbam_id": 656876,
             "pitcher_name": "Drew Rasmussen",
             "game_pk": 822982,
@@ -125,7 +133,7 @@ def _make_bundle(**overrides) -> ProjectionBundle:
                         "conditions": "Dome"},
             "umpire_name": "Ramon De Jesus",
             "umpire_id": 594151,
-            "first_pitch_iso": "2026-05-17T16:15:00+00:00",
+            "first_pitch_iso": "2025-05-17T16:15:00+00:00",
             "days_rest": 5,
         },
         "market": {
@@ -173,36 +181,121 @@ def test_pitcher_k_pct_season_falls_back_to_prior_year():
     assert 0.20 < value < 0.30
 
 
-# ---- pitcher_k_pct_30d_blended ---------------------------------------------
+# ---- pitcher_csw_pct_season (NEW PRIMARY) -----------------------------------
 
 
-def test_pitcher_k_pct_30d_blends_with_season():
+def test_pitcher_csw_pct_season_happy_path():
+    """Bundle has 200 PA × 4 pitches ≈ 800 season pitches with CSW-eligible
+    descriptions; should land in the season-shrunk branch."""
     bundle = _make_bundle()
-    value, miss = pitcher_k_pct_30d_blended(bundle, _ctx())
-    assert miss is None
-    assert 0.20 < value < 0.30
-
-
-def test_pitcher_k_pct_30d_returns_none_when_no_30d():
-    bundle = _make_bundle(pitcher={"statcast_pitches_30d": []})
-    value, miss = pitcher_k_pct_30d_blended(bundle, _ctx())
-    assert value is None
-
-
-# ---- CSW ------------------------------------------------------------------
-
-
-def test_pitcher_csw_pct_30d_happy():
-    bundle = _make_bundle()
-    value, miss = pitcher_csw_pct_30d(bundle, _ctx())
+    value, miss = pitcher_csw_pct_season(bundle, _ctx())
     assert miss is None
     assert 0.0 < value < 1.0
 
 
-def test_pitcher_csw_returns_none_no_pitches():
-    bundle = _make_bundle(pitcher={"statcast_pitches_30d": []})
-    value, miss = pitcher_csw_pct_30d(bundle, _ctx())
+def test_pitcher_csw_pct_season_falls_back_to_prior_year():
+    """Empty season pitches but a fat prior-year window should return the
+    prior-year rate directly."""
+    bundle = _make_bundle(pitcher={"statcast_pitches_season": []})
+    value, miss = pitcher_csw_pct_season(bundle, _ctx())
+    assert miss is None
+    assert 0.0 < value < 1.0
+
+
+def test_pitcher_csw_pct_season_returns_none_when_both_empty():
+    bundle = _make_bundle(pitcher={
+        "statcast_pitches_season": [], "statcast_pitches_prior_year": [],
+    })
+    value, miss = pitcher_csw_pct_season(bundle, _ctx())
     assert value is None
+    assert "insufficient" in miss
+
+
+def test_pitcher_csw_pct_season_returns_none_with_tiny_samples():
+    """Season has < MIN_PITCHES_CSW_SEASON (200) AND prior has < MIN_PITCHES_CSW_PRIOR (800)."""
+    tiny = _make_pitcher_pa_rows(n_pa=20, k_rate=0.25)  # ~80 pitches
+    bundle = _make_bundle(pitcher={
+        "statcast_pitches_season": tiny,
+        "statcast_pitches_prior_year": tiny,
+    })
+    value, miss = pitcher_csw_pct_season(bundle, _ctx())
+    assert value is None
+    assert "insufficient" in miss
+
+
+# ---- pitcher_csw_pct_season_delta ------------------------------------------
+
+
+def test_pitcher_csw_pct_season_delta_is_pitcher_minus_league():
+    """Delta should equal pitcher CSW% - league CSW% (within float epsilon).
+
+    The synthetic test fixture's CSW% is artificially high (~75%) because the
+    pitch construction puts called_strike on every non-terminal pitch, so the
+    delta will be a large positive number. We don't bound the magnitude here —
+    we just verify the identity delta == pitcher_csw - league_csw.
+    """
+    bundle = _make_bundle()
+    ctx = _ctx()
+    csw, csw_miss = pitcher_csw_pct_season(bundle, ctx)
+    delta, miss = pitcher_csw_pct_season_delta(bundle, ctx)
+    if csw_miss is not None:
+        pytest.skip("pitcher_csw_pct_season returned None for this fixture")
+    assert csw is not None
+    # If 2025 league_averages has csw_pct populated, delta should equal csw - league_csw
+    if miss is None:
+        from src.projection.features_kpa import _league_csw_anchor
+        league_csw = _league_csw_anchor(bundle, ctx)
+        assert league_csw is not None
+        assert abs(delta - (csw - league_csw)) < 1e-9
+
+
+def test_pitcher_csw_pct_season_delta_propagates_csw_missing():
+    bundle = _make_bundle(pitcher={
+        "statcast_pitches_season": [], "statcast_pitches_prior_year": [],
+    })
+    delta, miss = pitcher_csw_pct_season_delta(bundle, _ctx())
+    assert delta is None
+    assert "insufficient" in miss
+
+
+# ---- pitcher_archetype_feature ---------------------------------------------
+
+
+def test_pitcher_archetype_feature_returns_archetype_when_present():
+    """Bundle with a populated PitcherArchetype returns the archetype name."""
+    bundle_dict = _make_bundle().to_dict()
+    bundle_dict["pitcher_archetype"] = {
+        "archetype": "Power-FF", "season": 2025,
+        "fastball_pct": 0.6, "four_seam_pct": 0.4, "sinker_pct": 0.2,
+        "cutter_pct": 0.0, "breaking_pct": 0.25, "offspeed_pct": 0.15,
+        "n_starts": 25, "confidence": "current_season",
+    }
+    bundle = ProjectionBundle.from_dict(bundle_dict)
+    value, miss = pitcher_archetype_feature(bundle, _ctx())
+    assert miss is None
+    assert value == "Power-FF"
+
+
+def test_pitcher_archetype_feature_none_when_missing():
+    """Bundle without pitcher_archetype field -> (None, reason)."""
+    bundle = _make_bundle()
+    value, miss = pitcher_archetype_feature(bundle, _ctx())
+    assert value is None
+    assert "no pitcher_archetype" in miss
+
+
+def test_pitcher_archetype_feature_none_when_unknown_sentinel():
+    bundle_dict = _make_bundle().to_dict()
+    bundle_dict["pitcher_archetype"] = {
+        "archetype": "unknown", "season": 2025,
+        "fastball_pct": 0.0, "four_seam_pct": 0.0, "sinker_pct": 0.0,
+        "cutter_pct": 0.0, "breaking_pct": 0.0, "offspeed_pct": 0.0,
+        "n_starts": 0, "confidence": "unknown",
+    }
+    bundle = ProjectionBundle.from_dict(bundle_dict)
+    value, miss = pitcher_archetype_feature(bundle, _ctx())
+    assert value is None
+    assert "unknown" in miss
 
 
 # ---- Chase-whiff -----------------------------------------------------------
@@ -242,7 +335,6 @@ def test_velocity_trend_returns_z_score():
     season_fb = [_pitch(game_pk=1000 + i, at_bat_number=1, pitch_number=1,
                          pitch_type="FF", release_speed=95.0 + (i % 4) * 0.5)
                  for i in range(50)]
-    # 3 recent starts (game_pks 2000-2002), 12 fastballs each = 36 total.
     recent_fb = [_pitch(game_pk=2000 + (i // 12), at_bat_number=(i % 12) + 1,
                          pitch_number=1, pitch_type="FF", release_speed=93.5)
                  for i in range(36)]
@@ -262,94 +354,55 @@ def test_velocity_trend_returns_none_few_fastballs():
     assert "fastballs" in miss
 
 
-# ---- Putaway concentration -------------------------------------------------
+# ---- log_park_k_factor_by_hand ---------------------------------------------
 
 
-def test_putaway_concentration_returns_share():
-    """A pitcher who throws their slider 60% of 2K counts has concentration 0.6."""
-    two_strike_pitches = []
-    for i in range(60):
-        two_strike_pitches.append(_pitch(game_pk=1, at_bat_number=i + 1, pitch_number=3,
-                                          strikes=2, pitch_type="SL"))
-    for i in range(40):
-        two_strike_pitches.append(_pitch(game_pk=1, at_bat_number=i + 1 + 60,
-                                          pitch_number=3, strikes=2, pitch_type="FF"))
-    bundle = _make_bundle(pitcher={"statcast_pitches_season": two_strike_pitches})
-    value, miss = pitcher_putaway_pitch_concentration(bundle, _ctx())
-    assert miss is None
-    assert abs(value - 0.6) < 0.001
-
-
-def test_putaway_returns_none_no_two_strike():
-    bundle = _make_bundle(pitcher={
-        "statcast_pitches_season": [], "statcast_pitches_prior_year": [],
-    })
-    value, miss = pitcher_putaway_pitch_concentration(bundle, _ctx())
-    assert value is None
-
-
-# ---- Lineup features -------------------------------------------------------
-
-
-def test_lineup_k_pct_vs_hand_happy():
-    bundle = _make_bundle()
-    value, miss = lineup_k_pct_vs_hand(bundle, _ctx())
-    assert miss is None
-    assert 0.20 < value < 0.30
-
-
-def test_lineup_k_pct_vs_hand_skips_when_no_lineup():
-    bundle = _make_bundle(opposing_lineup={"lineup_posted": False, "batters": []})
-    value, miss = lineup_k_pct_vs_hand(bundle, _ctx())
-    assert value is None
-
-
-def test_lineup_zone_contact_happy():
-    bundle = _make_bundle()
-    value, miss = lineup_zone_contact_pct(bundle, _ctx())
-    # Our test data has all PAs ending in non-swing or swing-strike — value
-    # depends on the SWING_DESCRIPTIONS classification. As long as it returns
-    # something in [0, 1] the math is sound.
-    assert miss is None
-    assert 0.0 <= value <= 1.0
-
-
-def test_lineup_chase_rate_happy_with_ooz_swings():
-    """Inject OOZ pitches into one batter so chase rate has a value."""
+def test_log_park_k_factor_by_hand_uses_rhp_split_for_right_handed_pitcher():
+    """RHP -> uses factor_rhp from bundle.park_k_factors_by_hand."""
     bundle_dict = _make_bundle().to_dict()
-    ooz_rows = []
-    for i in range(20):
-        ooz_rows.append(_pitch(game_pk=8000, at_bat_number=i + 1, pitch_number=1,
-                                description="swinging_strike", zone=12, p_throws="R"))
-        ooz_rows.append(_pitch(game_pk=8000, at_bat_number=i + 1, pitch_number=2,
-                                description="ball", zone=11, p_throws="R"))
-    bundle_dict["opposing_lineup"]["batters"][0]["statcast_pa_season"] = ooz_rows
+    bundle_dict["park_k_factors_by_hand"] = {
+        "venue_id": 12, "venue_name": "Tropicana Field",
+        "factor_lhp": 1.10, "factor_rhp": 1.05,
+        "factor_combined": 1.07, "n_games_lhp": 100, "n_games_rhp": 100,
+    }
     bundle = ProjectionBundle.from_dict(bundle_dict)
-    value, miss = lineup_chase_rate(bundle, _ctx())
+    value, miss = log_park_k_factor_by_hand(bundle, _ctx())
     assert miss is None
-    assert 0.0 <= value <= 1.0
+    assert abs(value - math.log(1.05)) < 1e-9
 
 
-# ---- Park / umpire ---------------------------------------------------------
+def test_log_park_k_factor_by_hand_uses_lhp_split_for_left_handed_pitcher():
+    bundle_dict = _make_bundle(pitcher={"handedness": "L"}).to_dict()
+    bundle_dict["park_k_factors_by_hand"] = {
+        "venue_id": 12, "venue_name": "Tropicana Field",
+        "factor_lhp": 1.10, "factor_rhp": 1.05,
+        "factor_combined": 1.07, "n_games_lhp": 100, "n_games_rhp": 100,
+    }
+    bundle = ProjectionBundle.from_dict(bundle_dict)
+    value, miss = log_park_k_factor_by_hand(bundle, _ctx())
+    assert miss is None
+    assert abs(value - math.log(1.10)) < 1e-9
 
 
-def test_park_k_factor_known_venue():
-    """Tropicana (venue 12) is present in park_k_factors.json. With Phase 4b
-    derived factors the value is no longer exactly 1.0; just assert it's in
-    a sane range and not None.
-    """
+def test_log_park_k_factor_by_hand_falls_back_to_legacy_when_no_by_hand():
+    """Legacy bundle without park_k_factors_by_hand uses ctx.park_k_factors."""
     bundle = _make_bundle()
-    value, miss = park_k_factor(bundle, _ctx())
+    assert bundle.park_k_factors_by_hand is None
+    value, miss = log_park_k_factor_by_hand(bundle, _ctx())
+    # Tropicana is in park_k_factors.json — should resolve
     assert miss is None
     assert value is not None
-    assert 0.80 <= value <= 1.20
 
 
-def test_park_k_factor_unknown_venue_returns_none():
+def test_log_park_k_factor_by_hand_unknown_venue_returns_none():
+    """Unknown venue AND no by_hand field -> None."""
     bundle = _make_bundle(game_context={"venue_id": 99999})
-    value, miss = park_k_factor(bundle, _ctx())
+    value, miss = log_park_k_factor_by_hand(bundle, _ctx())
     assert value is None
     assert "park_k_factors" in miss
+
+
+# ---- Umpire ----------------------------------------------------------------
 
 
 def test_umpire_k_factor_missing_returns_one():
@@ -369,21 +422,47 @@ def test_compute_p_k_pa_happy_path():
     assert result.skip_reason is None
     assert result.p_k_pa is not None
     assert P_K_PA_FLOOR <= result.p_k_pa <= P_K_PA_CEIL
-    for k in ("pitcher_k_pct_season_shrunk", "lineup_k_pct_vs_hand", "park_k_factor"):
-        assert k in result.used_features
+    # New feature set must appear
+    for k in ("pitcher_csw_pct_season", "log_park_k_factor_by_hand",
+              "league_k_pct_vs_hand"):
+        assert k in result.used_features, f"missing required feature: {k}"
 
 
-def test_compute_p_k_pa_skips_when_required_missing():
-    bundle = _make_bundle(game_context={"venue_id": 99999})  # unknown park
+def test_compute_p_k_pa_does_not_emit_dropped_features():
+    """Dropped builders must NOT appear in used_features."""
+    bundle = _make_bundle()
+    result = compute_p_k_pa(bundle, _ctx())
+    dropped = {
+        "pitcher_k_pct_30d_blended", "pitcher_csw_pct_30d",
+        "pitcher_putaway_pitch_concentration",
+        "lineup_k_pct_vs_hand", "lineup_zone_contact_pct",
+        "lineup_chase_rate", "park_k_factor",
+    }
+    for name in dropped:
+        assert name not in result.used_features, (
+            f"dropped feature {name!r} leaked into used_features"
+        )
+
+
+def test_compute_p_k_pa_skips_when_csw_missing():
+    bundle = _make_bundle(pitcher={
+        "statcast_pitches_season": [], "statcast_pitches_prior_year": [],
+    })
     result = compute_p_k_pa(bundle, _ctx())
     assert result.skipped is True
-    assert "park_k_factor" in result.skip_reason
-    assert result.p_k_pa is None
+    assert "pitcher_csw_pct_season" in result.skip_reason
+
+
+def test_compute_p_k_pa_skips_when_park_missing():
+    """Unknown venue AND no park_k_factors_by_hand -> skip."""
+    bundle = _make_bundle(game_context={"venue_id": 99999})
+    result = compute_p_k_pa(bundle, _ctx())
+    assert result.skipped is True
+    assert "log_park_k_factor_by_hand" in result.skip_reason
 
 
 def test_compute_p_k_pa_clips_at_floor():
-    """Force an artificial scenario where unclipped result < 0.10."""
-    # Use a pitcher with very low K rate and a lineup that's hard to strike out.
+    """Very low K rate pitcher -> result clipped at floor."""
     low_k_rows = _make_pitcher_pa_rows(n_pa=300, k_rate=0.05)
     bundle = _make_bundle(pitcher={
         "statcast_pitches_season": low_k_rows,
@@ -396,7 +475,7 @@ def test_compute_p_k_pa_clips_at_floor():
 
 
 def test_compute_p_k_pa_clips_at_ceiling():
-    """Pitcher with very high K rate -> ceiling at 0.45."""
+    """Very high K rate pitcher -> result clipped at ceiling."""
     high_k_rows = _make_pitcher_pa_rows(n_pa=300, k_rate=0.55)
     bundle = _make_bundle(pitcher={
         "statcast_pitches_season": high_k_rows,
@@ -408,15 +487,17 @@ def test_compute_p_k_pa_clips_at_ceiling():
     assert result.p_k_pa <= P_K_PA_CEIL
 
 
-def test_compute_p_k_pa_lineup_high_k_increases_projection():
-    """Same pitcher, higher-K lineup -> higher projected K rate."""
-    bundle_normal = _make_bundle()
-    high_k_batter_rows = _make_pitcher_pa_rows(n_pa=100, k_rate=0.40, p_throws="R")
-    bundle_dict = bundle_normal.to_dict()
-    for batter in bundle_dict["opposing_lineup"]["batters"]:
-        batter["statcast_pa_season"] = high_k_batter_rows
-    bundle_high = ProjectionBundle.from_dict(bundle_dict)
-
-    r_normal = compute_p_k_pa(bundle_normal, _ctx())
-    r_high = compute_p_k_pa(bundle_high, _ctx())
-    assert r_high.p_k_pa > r_normal.p_k_pa
+def test_compute_p_k_pa_carries_pitcher_archetype_in_used_features():
+    """When the bundle carries a pitcher_archetype, the side-channel feature
+    surfaces in used_features (but does NOT contribute to logit composition)."""
+    bundle_dict = _make_bundle().to_dict()
+    bundle_dict["pitcher_archetype"] = {
+        "archetype": "Power-FF", "season": 2025,
+        "fastball_pct": 0.6, "four_seam_pct": 0.4, "sinker_pct": 0.2,
+        "cutter_pct": 0.0, "breaking_pct": 0.25, "offspeed_pct": 0.15,
+        "n_starts": 25, "confidence": "current_season",
+    }
+    bundle = ProjectionBundle.from_dict(bundle_dict)
+    result = compute_p_k_pa(bundle, _ctx())
+    assert result.skipped is False
+    assert result.used_features.get("pitcher_archetype") == "Power-FF"

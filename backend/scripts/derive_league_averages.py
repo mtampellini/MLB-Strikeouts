@@ -52,6 +52,11 @@ SWING_DESCRIPTIONS = frozenset({
     "missed_bunt",
 })
 WHIFF_DESCRIPTIONS = frozenset({"swinging_strike", "swinging_strike_blocked"})
+# CSW: called strikes + whiffs (the K-skill measurement that Phase 3-v2c-iii
+# uses as the PRIMARY pitcher feature).
+CSW_DESCRIPTIONS = frozenset({
+    "called_strike", "swinging_strike", "swinging_strike_blocked",
+})
 
 IN_ZONE_ZONES = frozenset({1, 2, 3, 4, 5, 6, 7, 8, 9})
 OUT_OF_ZONE_ZONES = frozenset({11, 12, 13, 14})
@@ -114,7 +119,7 @@ def _compute_split(rows_pa: pd.DataFrame, rows_pitch: pd.DataFrame) -> dict:
     if n_pa == 0:
         return {
             "k_pct": None, "obp": None, "zone_contact_pct": None,
-            "chase_rate": None, "n_pa": 0,
+            "chase_rate": None, "csw_pct": None, "n_pa": 0,
         }
 
     events = rows_pa["events"]
@@ -136,11 +141,14 @@ def _compute_split(rows_pa: pd.DataFrame, rows_pitch: pd.DataFrame) -> dict:
     ooz = rows_pitch["zone"].isin(OUT_OF_ZONE_ZONES)
     swung = rows_pitch["description"].isin(SWING_DESCRIPTIONS)
     whiffed = rows_pitch["description"].isin(WHIFF_DESCRIPTIONS)
+    is_csw = rows_pitch["description"].isin(CSW_DESCRIPTIONS)
 
     in_zone_swings = (in_zone & swung).sum()
     in_zone_contact = (in_zone & swung & ~whiffed).sum()
     ooz_pitches = ooz.sum()
     ooz_swings = (ooz & swung).sum()
+    n_pitches = len(rows_pitch)
+    n_csw = int(is_csw.sum())
 
     zone_contact_pct = (
         float(in_zone_contact) / in_zone_swings if in_zone_swings > 0 else None
@@ -148,6 +156,7 @@ def _compute_split(rows_pa: pd.DataFrame, rows_pitch: pd.DataFrame) -> dict:
     chase_rate = (
         float(ooz_swings) / ooz_pitches if ooz_pitches > 0 else None
     )
+    csw_pct = float(n_csw) / n_pitches if n_pitches > 0 else None
 
     return {
         "k_pct": round(k_pct, 4) if k_pct is not None else None,
@@ -156,6 +165,7 @@ def _compute_split(rows_pa: pd.DataFrame, rows_pitch: pd.DataFrame) -> dict:
             round(zone_contact_pct, 4) if zone_contact_pct is not None else None
         ),
         "chase_rate": round(chase_rate, 4) if chase_rate is not None else None,
+        "csw_pct": round(csw_pct, 4) if csw_pct is not None else None,
         "n_pa": int(n_pa),
     }
 

@@ -57,7 +57,7 @@ def test_compute_split_handles_empty_input():
     out = _compute_split(pd.DataFrame(), pd.DataFrame())
     assert out == {
         "k_pct": None, "obp": None, "zone_contact_pct": None,
-        "chase_rate": None, "n_pa": 0,
+        "chase_rate": None, "csw_pct": None, "n_pa": 0,
     }
 
 
