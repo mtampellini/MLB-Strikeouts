@@ -1,0 +1,170 @@
+{
+  "generated_at": "2026-05-19T00:01:56Z",
+  "method": "empirical_pa_outcomes_by_tto_and_archetype",
+  "seasons_used": [
+    2023,
+    2024,
+    2025
+  ],
+  "shrinkage_prior_pa": 500,
+  "min_sample_per_cell": 200,
+  "by_archetype": {
+    "Power-FF": {
+      "tto_1": {
+        "multiplier": 1.0,
+        "k_rate": 0.2573,
+        "n_pa": 25707,
+        "low_sample": false
+      },
+      "tto_2": {
+        "multiplier": 0.8894,
+        "k_rate": 0.2283,
+        "n_pa": 25466,
+        "low_sample": false
+      },
+      "tto_3": {
+        "multiplier": 0.8063,
+        "k_rate": 0.2058,
+        "n_pa": 14580,
+        "low_sample": false
+      },
+      "tto_4": {
+        "multiplier": 0.9513,
+        "k_rate": 0.2185,
+        "n_pa": 238,
+        "low_sample": false
+      }
+    },
+    "Sinker-ball": {
+      "tto_1": {
+        "multiplier": 1.0,
+        "k_rate": 0.2212,
+        "n_pa": 14092,
+        "low_sample": false
+      },
+      "tto_2": {
+        "multiplier": 0.872,
+        "k_rate": 0.1919,
+        "n_pa": 13968,
+        "low_sample": false
+      },
+      "tto_3": {
+        "multiplier": 0.8151,
+        "k_rate": 0.1779,
+        "n_pa": 8550,
+        "low_sample": false
+      },
+      "tto_4": {
+        "multiplier": 0.8837,
+        "k_rate": 0.144,
+        "n_pa": 250,
+        "low_sample": false
+      }
+    },
+    "Breaking-heavy": {
+      "tto_1": {
+        "multiplier": 1.0,
+        "k_rate": 0.2576,
+        "n_pa": 27363,
+        "low_sample": false
+      },
+      "tto_2": {
+        "multiplier": 0.8832,
+        "k_rate": 0.227,
+        "n_pa": 27113,
+        "low_sample": false
+      },
+      "tto_3": {
+        "multiplier": 0.8037,
+        "k_rate": 0.2054,
+        "n_pa": 15684,
+        "low_sample": false
+      },
+      "tto_4": {
+        "multiplier": 0.8607,
+        "k_rate": 0.1656,
+        "n_pa": 320,
+        "low_sample": false
+      }
+    },
+    "Offspeed-heavy": {
+      "tto_1": {
+        "multiplier": 1.0,
+        "k_rate": 0.2537,
+        "n_pa": 12380,
+        "low_sample": false
+      },
+      "tto_2": {
+        "multiplier": 0.8871,
+        "k_rate": 0.2239,
+        "n_pa": 12237,
+        "low_sample": false
+      },
+      "tto_3": {
+        "multiplier": 0.8177,
+        "k_rate": 0.2042,
+        "n_pa": 7096,
+        "low_sample": false
+      },
+      "tto_4": {
+        "multiplier": 0.8952,
+        "k_rate": 0.1659,
+        "n_pa": 217,
+        "low_sample": false
+      }
+    },
+    "Balanced": {
+      "tto_1": {
+        "multiplier": 1.0,
+        "k_rate": 0.2413,
+        "n_pa": 27333,
+        "low_sample": false
+      },
+      "tto_2": {
+        "multiplier": 0.9122,
+        "k_rate": 0.2197,
+        "n_pa": 27042,
+        "low_sample": false
+      },
+      "tto_3": {
+        "multiplier": 0.8363,
+        "k_rate": 0.2005,
+        "n_pa": 15967,
+        "low_sample": false
+      },
+      "tto_4": {
+        "multiplier": 0.887,
+        "k_rate": 0.1727,
+        "n_pa": 330,
+        "low_sample": false
+      }
+    }
+  },
+  "league_wide": {
+    "tto_1": {
+      "multiplier": 1.0,
+      "k_rate": 0.2481,
+      "n_pa": 106875
+    },
+    "tto_2": {
+      "multiplier": 0.889,
+      "k_rate": 0.2204,
+      "n_pa": 105826
+    },
+    "tto_3": {
+      "multiplier": 0.8088,
+      "k_rate": 0.2003,
+      "n_pa": 61877
+    },
+    "tto_4": {
+      "multiplier": 0.778,
+      "k_rate": 0.1727,
+      "n_pa": 1355
+    }
+  },
+  "summary": {
+    "total_pa_used": 275933,
+    "total_pa_skipped_no_archetype": 7469,
+    "low_sample_cells": []
+  }
+}

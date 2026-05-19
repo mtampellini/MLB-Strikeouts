@@ -1,0 +1,136 @@
+{
+  "generated_at": "2026-05-19T00:01:56Z",
+  "heat_map_text": "archetype              TTO_1     TTO_2     TTO_3     TTO_4\n----------------------------------------------------------\nPower-FF               1.000     0.889     0.806     0.951\nSinker-ball            1.000     0.872     0.815     0.884\nBreaking-heavy         1.000     0.883     0.804     0.861\nOffspeed-heavy         1.000     0.887     0.818     0.895\nBalanced               1.000     0.912     0.836     0.887\n----------------------------------------------------------\nleague-wide            1.000     0.889     0.809     0.778",
+  "confidence_intervals_95pct": {
+    "Power-FF": {
+      "tto_1": {
+        "ci_lo": 0.9711,
+        "ci_hi": 1.0298
+      },
+      "tto_2": {
+        "ci_lo": 0.8604,
+        "ci_hi": 0.9149
+      },
+      "tto_3": {
+        "ci_lo": 0.7698,
+        "ci_hi": 0.8306
+      },
+      "tto_4": {
+        "ci_lo": 0.6671,
+        "ci_hi": 1.0807
+      }
+    },
+    "Sinker-ball": {
+      "tto_1": {
+        "ci_lo": 0.9571,
+        "ci_hi": 1.0448
+      },
+      "tto_2": {
+        "ci_lo": 0.8284,
+        "ci_hi": 0.9083
+      },
+      "tto_3": {
+        "ci_lo": 0.7611,
+        "ci_hi": 0.8498
+      },
+      "tto_4": {
+        "ci_lo": 0.4805,
+        "ci_hi": 0.8822
+      }
+    },
+    "Breaking-heavy": {
+      "tto_1": {
+        "ci_lo": 0.972,
+        "ci_hi": 1.0289
+      },
+      "tto_2": {
+        "ci_lo": 0.8552,
+        "ci_hi": 0.9077
+      },
+      "tto_3": {
+        "ci_lo": 0.7687,
+        "ci_hi": 0.8273
+      },
+      "tto_4": {
+        "ci_lo": 0.5023,
+        "ci_hi": 0.8229
+      }
+    },
+    "Offspeed-heavy": {
+      "tto_1": {
+        "ci_lo": 0.9582,
+        "ci_hi": 1.0437
+      },
+      "tto_2": {
+        "ci_lo": 0.8439,
+        "ci_hi": 0.9229
+      },
+      "tto_3": {
+        "ci_lo": 0.7618,
+        "ci_hi": 0.8503
+      },
+      "tto_4": {
+        "ci_lo": 0.4845,
+        "ci_hi": 0.8825
+      }
+    },
+    "Balanced": {
+      "tto_1": {
+        "ci_lo": 0.9707,
+        "ci_hi": 1.0302
+      },
+      "tto_2": {
+        "ci_lo": 0.8829,
+        "ci_hi": 0.939
+      },
+      "tto_3": {
+        "ci_lo": 0.8006,
+        "ci_hi": 0.8628
+      },
+      "tto_4": {
+        "ci_lo": 0.5648,
+        "ci_hi": 0.9074
+      }
+    }
+  },
+  "research_benchmark_comparison": {
+    "tto_1": {
+      "observed_league_wide": 1.0,
+      "research_benchmark": 1.0,
+      "delta": 0.0
+    },
+    "tto_2": {
+      "observed_league_wide": 0.889,
+      "research_benchmark": 0.96,
+      "delta": -0.071
+    },
+    "tto_3": {
+      "observed_league_wide": 0.8088,
+      "research_benchmark": 0.9,
+      "delta": -0.0912
+    },
+    "tto_4": {
+      "observed_league_wide": 0.778,
+      "research_benchmark": 0.84,
+      "delta": -0.062
+    }
+  },
+  "spot_check_warnings": [
+    "Breaking-heavy TTO=3 (0.8037) <= Power-FF (0.8063) \u2014 research expected Breaking-heavy to hold up better through the order"
+  ],
+  "archetype_interaction_finding": {
+    "summary": "The four 'specialized' archetypes (Power-FF, Sinker-ball, Breaking-heavy, Offspeed-heavy) cluster tight at TTO=3 (0.804-0.818). Balanced is the outlier with the smallest TTO=3 penalty (0.836). The original research expectation that Power-FF would take the largest penalty (and Breaking-heavy the smallest) is not supported in the K-rate data. Plausible explanation: predictability is the punishable trait regardless of which specific predictable pitch is being thrown \u2014 diversifying arsenal (Balanced) holds up better than any single 'specialty', even slider-heavy.",
+    "specialized_tto3_multipliers": {
+      "Power-FF": 0.8063,
+      "Sinker-ball": 0.8151,
+      "Breaking-heavy": 0.8037,
+      "Offspeed-heavy": 0.8177
+    },
+    "specialized_tto3_range": [
+      0.8037,
+      0.8177
+    ],
+    "balanced_tto3_multiplier": 0.8363,
+    "balanced_vs_specialized_gap": 0.0186
+  }
+}

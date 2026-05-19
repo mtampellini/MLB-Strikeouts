@@ -42,6 +42,10 @@ backend/data/processed/*
 # and diagnostic report (top-10 per archetype, YoY transitions, spot-check WARNs).
 !backend/data/processed/pitcher_archetypes.json
 !backend/data/processed/pitcher_archetypes_report.json
+# Phase 3-v2b output: TTO multipliers (archetype x TTO bucket) + diagnostic report
+# (heat map, 95% CI, research benchmark comparison, archetype interaction finding).
+!backend/data/processed/tto_multipliers.json
+!backend/data/processed/tto_multipliers_report.json
 # nb_dispersion.json: locked value from scripts/fit_nb_dispersion.py.
 !backend/data/processed/nb_dispersion.json
 # tracker.json: generated nightly, read at build time for big-number cards.
