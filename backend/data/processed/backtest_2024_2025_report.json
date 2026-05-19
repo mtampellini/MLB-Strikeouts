@@ -1,0 +1,265 @@
+{
+  "generated_at": "2026-05-19T22:32:27Z",
+  "method": "walk_forward_asofcontext_projection",
+  "seasons": [
+    2024,
+    2025
+  ],
+  "summary": {
+    "n_games_projected": 5562,
+    "n_games_skipped": 2619,
+    "overall_mae": 1.7534,
+    "overall_rmse": 2.1972,
+    "mean_e_k": 5.4095,
+    "mean_observed_k": 5.322,
+    "calibration_bias": 0.0875,
+    "correlation": 0.4031,
+    "game_level_r2": 0.1557
+  },
+  "cohort_biases": {
+    "pitcher_quartile": {
+      "Q1": {
+        "n_games": 1391,
+        "mean_e_k": 4.2681,
+        "mean_observed_k": 4.3106,
+        "bias": -0.0425,
+        "mae": 1.5931
+      },
+      "Q2": {
+        "n_games": 1390,
+        "mean_e_k": 5.0076,
+        "mean_observed_k": 4.9734,
+        "bias": 0.0342,
+        "mae": 1.7041
+      },
+      "Q3": {
+        "n_games": 1390,
+        "mean_e_k": 5.7131,
+        "mean_observed_k": 5.5489,
+        "bias": 0.1641,
+        "mae": 1.8722
+      },
+      "Q4": {
+        "n_games": 1391,
+        "mean_e_k": 6.6493,
+        "mean_observed_k": 6.4551,
+        "bias": 0.1942,
+        "mae": 1.8443
+      }
+    },
+    "line_bucket": {
+      "3.5-4.5": {
+        "n_games": 1096,
+        "mean_e_k": 4.0763,
+        "mean_observed_k": 4.1797,
+        "bias": -0.1034,
+        "mae": 1.5588
+      },
+      "4.5-5.5": {
+        "n_games": 1819,
+        "mean_e_k": 5.0065,
+        "mean_observed_k": 4.9841,
+        "bias": 0.0224,
+        "mae": 1.7391
+      },
+      "5.5-6.5": {
+        "n_games": 1498,
+        "mean_e_k": 5.9585,
+        "mean_observed_k": 5.781,
+        "bias": 0.1775,
+        "mae": 1.8569
+      },
+      "6.5-7.5": {
+        "n_games": 746,
+        "mean_e_k": 6.9171,
+        "mean_observed_k": 6.5576,
+        "bias": 0.3594,
+        "mae": 1.9157
+      },
+      "7.5-8.5": {
+        "n_games": 214,
+        "mean_e_k": 7.876,
+        "mean_observed_k": 7.6168,
+        "bias": 0.2592,
+        "mae": 1.7976
+      },
+      "8.5+": {
+        "n_games": 164,
+        "mean_e_k": 3.1777,
+        "mean_observed_k": 3.5,
+        "bias": -0.3223,
+        "mae": 1.4535
+      },
+      "8.5-14.0": {
+        "n_games": 25,
+        "mean_e_k": 8.8296,
+        "mean_observed_k": 7.92,
+        "bias": 0.9096,
+        "mae": 1.8701
+      }
+    },
+    "park_k_factor_quartile": {
+      "Q1": {
+        "n_games": 1391,
+        "mean_e_k": 5.1128,
+        "mean_observed_k": 5.0834,
+        "bias": 0.0294,
+        "mae": 1.745
+      },
+      "Q2": {
+        "n_games": 1390,
+        "mean_e_k": 5.3249,
+        "mean_observed_k": 5.2626,
+        "bias": 0.0623,
+        "mae": 1.7539
+      },
+      "Q3": {
+        "n_games": 1390,
+        "mean_e_k": 5.5036,
+        "mean_observed_k": 5.3755,
+        "bias": 0.1281,
+        "mae": 1.7091
+      },
+      "Q4": {
+        "n_games": 1391,
+        "mean_e_k": 5.6967,
+        "mean_observed_k": 5.5665,
+        "bias": 0.1302,
+        "mae": 1.8056
+      }
+    },
+    "days_rest_bucket": {
+      "first_or_il_return": {
+        "n_games": 5562,
+        "mean_e_k": 5.4095,
+        "mean_observed_k": 5.322,
+        "bias": 0.0875,
+        "mae": 1.7534
+      }
+    },
+    "archetype": {
+      "Balanced": {
+        "n_games": 1583,
+        "mean_e_k": 5.2725,
+        "mean_observed_k": 5.1699,
+        "bias": 0.1026,
+        "mae": 1.7383
+      },
+      "Breaking-heavy": {
+        "n_games": 1324,
+        "mean_e_k": 5.6131,
+        "mean_observed_k": 5.5959,
+        "bias": 0.0172,
+        "mae": 1.7469
+      },
+      "Offspeed-heavy": {
+        "n_games": 691,
+        "mean_e_k": 5.6579,
+        "mean_observed_k": 5.4616,
+        "bias": 0.1962,
+        "mae": 1.7518
+      },
+      "Power-FF": {
+        "n_games": 1261,
+        "mean_e_k": 5.5138,
+        "mean_observed_k": 5.3878,
+        "bias": 0.126,
+        "mae": 1.7853
+      },
+      "Sinker-ball": {
+        "n_games": 703,
+        "mean_e_k": 4.9034,
+        "mean_observed_k": 4.8933,
+        "bias": 0.0101,
+        "mae": 1.7441
+      }
+    }
+  },
+  "per_line_calibration": {
+    "3.5": {
+      "predicted": 0.7556,
+      "observed": 0.763,
+      "deviation": 0.0074,
+      "n_games": 5562
+    },
+    "4.5": {
+      "predicted": 0.6036,
+      "observed": 0.6115,
+      "deviation": 0.0078,
+      "n_games": 5562
+    },
+    "5.5": {
+      "predicted": 0.4478,
+      "observed": 0.443,
+      "deviation": -0.0048,
+      "n_games": 5562
+    },
+    "6.5": {
+      "predicted": 0.3092,
+      "observed": 0.2907,
+      "deviation": -0.0185,
+      "n_games": 5562
+    },
+    "7.5": {
+      "predicted": 0.1997,
+      "observed": 0.1821,
+      "deviation": -0.0176,
+      "n_games": 5562
+    },
+    "8.5": {
+      "predicted": 0.1211,
+      "observed": 0.1005,
+      "deviation": -0.0206,
+      "n_games": 5562
+    },
+    "9.5": {
+      "predicted": 0.0694,
+      "observed": 0.0507,
+      "deviation": -0.0187,
+      "n_games": 5562
+    }
+  },
+  "skip_reasons": {
+    "career_ip_below_50": 2499,
+    "season_ip_below_20_and_prior_below_80": 118,
+    "projector_skipped: hard_filter: projected_BF 11.65 < 12.0": 1,
+    "projector_skipped: hard_filter: projected_BF 11.53 < 12.0": 1
+  },
+  "leakage_check": {
+    "n_games_tested": 4,
+    "n_games_differ": 4,
+    "asofcontext_fires_correctly": true,
+    "mean_delta_with_future_cutoff": 1.4144
+  },
+  "gates_passed": [
+    "n_games_projected >= 5000",
+    "overall_mae <= 1.8",
+    "|overall_bias| <= 0.15",
+    "all halt-gated cohort biases within +-0.3",
+    "all per-line deviations within +-0.05",
+    "leakage check: AsOfContext fires correctly"
+  ],
+  "gates_failed": [],
+  "warnings": [
+    {
+      "line_bucket_high_end_over_prediction": {
+        "description": "Model over-predicts e_k at high projection levels, consistent with Phase 4d per-line calibration (1.5-2.4pp over-prediction at lines 5.5-9.5).",
+        "buckets": {
+          "6.5-7.5": {
+            "bias": 0.3594,
+            "n_games": 746
+          },
+          "8.5+": {
+            "bias": -0.3223,
+            "n_games": 164
+          },
+          "8.5-14.0": {
+            "bias": 0.9096,
+            "n_games": 25
+          }
+        },
+        "operational_impact": "Picks at high lines may have edge_pct slightly overstated. The calibration_note field on every pick already documents this. Paper trade will reveal whether picks engine edge thresholds need tightening."
+      }
+    }
+  ]
+}

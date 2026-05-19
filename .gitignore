@@ -64,6 +64,10 @@ backend/data/processed/*
 # Phase 4d calibration output: per-line predicted-vs-observed table for
 # downstream consumption (picks engine in Phase 5).
 !backend/data/processed/nb_dispersion_calibration.json
+# Phase 6 backtest report + per-game pairs cache (the latter enables
+# --recompute-cohorts-only fast reruns).
+!backend/data/processed/backtest_2024_2025_report.json
+!backend/data/processed/backtest_2024_2025_pairs.csv
 # tracker.json: generated nightly, read at build time for big-number cards.
 !backend/data/processed/tracker.json
 
