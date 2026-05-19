@@ -617,15 +617,33 @@ class PADistribution:
 
     @classmethod
     def from_dict(cls, blob: dict) -> "PADistribution":
+        """Accept BOTH wire formats:
+
+        1. The raw `pa_distribution_by_bf.json` shape from derive_pa_distribution:
+           ``{"distributions": {bf: {by_slot: {...}, n_games, smoothed}}, "summary": {...}}``
+        2. The bundle-embedded shape from `to_dict()`:
+           ``{"by_bf": {bf: {slot: cell}}, "bf_range_observed": [..], "modal_bf": N}``
+        """
         by_bf: dict[int, dict[int, PADistributionCell]] = {}
-        for bf_str, entry in (blob.get("distributions") or {}).items():
-            inner = (entry.get("by_slot") or {})
-            slot_map: dict[int, PADistributionCell] = {}
-            for slot_str, cell in inner.items():
-                slot_map[int(slot_str)] = PADistributionCell.from_dict(cell)
-            by_bf[int(bf_str)] = slot_map
-        rng = blob.get("summary", {}).get("bf_range_observed") or (0, 0)
-        modal = blob.get("summary", {}).get("modal_bf") or 0
+        if "by_bf" in blob:
+            # Bundle-embedded shape (from to_dict round-trip).
+            for bf_str, slot_map_blob in (blob.get("by_bf") or {}).items():
+                slot_map: dict[int, PADistributionCell] = {}
+                for slot_str, cell in slot_map_blob.items():
+                    slot_map[int(slot_str)] = PADistributionCell.from_dict(cell)
+                by_bf[int(bf_str)] = slot_map
+            rng = blob.get("bf_range_observed") or (0, 0)
+            modal = blob.get("modal_bf") or 0
+        else:
+            # Raw derive_pa_distribution.py shape.
+            for bf_str, entry in (blob.get("distributions") or {}).items():
+                inner = (entry.get("by_slot") or {})
+                slot_map = {}
+                for slot_str, cell in inner.items():
+                    slot_map[int(slot_str)] = PADistributionCell.from_dict(cell)
+                by_bf[int(bf_str)] = slot_map
+            rng = blob.get("summary", {}).get("bf_range_observed") or (0, 0)
+            modal = blob.get("summary", {}).get("modal_bf") or 0
         return cls(
             by_bf=by_bf,
             bf_range_observed=(int(rng[0]), int(rng[1])),
