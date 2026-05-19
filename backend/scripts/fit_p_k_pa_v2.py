@@ -66,9 +66,16 @@ REFERENCE_ARCH = "Balanced"
 REFERENCE_TTO = 1
 
 # Main pitcher regressor features expected from compute_p_k_pa.used_features.
+#
+# Phase 4c-v2 refit: pitcher_k_pct_delta DROPPED. The first --full run came
+# back with K% delta as a wrong-signed coefficient (-3.05) and CSW% delta
+# with borderline bootstrap stability (0.92). Both failures traced to
+# collinearity: the log5 offset already encodes pitcher K rate as the
+# matchup baseline; CSW% delta captures K-skill residual; K% delta was a
+# redundant third signal that produced the regression-mechanical sign flip
+# and stole signal from CSW%. Without it competing, CSW% should tighten.
 MAIN_REGRESSORS = (
     "pitcher_csw_pct_season_delta",
-    "pitcher_k_pct_delta",
     "pitcher_velocity_trend_z",
     "pitcher_chase_whiff_pct_30d_delta",
     "log_park_k_factor_by_hand",
