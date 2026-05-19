@@ -45,6 +45,7 @@ from src.projection.projector import (
     ARCHETYPE_UNKNOWN_FALLBACK,
     LEAGUE_K_PCT_HARD_FALLBACK,
     _compute_log5,
+    _compute_pitcher_effective_k_rate,
     _effective_batter_hand,
     _league_k_pct_vs_hand,
     _resolve_archetype,
@@ -67,17 +68,23 @@ REFERENCE_TTO = 1
 
 # Main pitcher regressor features expected from compute_p_k_pa.used_features.
 #
-# Phase 4c-v2 refit: pitcher_k_pct_delta DROPPED. The first --full run came
-# back with K% delta as a wrong-signed coefficient (-3.05) and CSW% delta
-# with borderline bootstrap stability (0.92). Both failures traced to
-# collinearity: the log5 offset already encodes pitcher K rate as the
-# matchup baseline; CSW% delta captures K-skill residual; K% delta was a
-# redundant third signal that produced the regression-mechanical sign flip
-# and stole signal from CSW%. Without it competing, CSW% should tighten.
+# Phase 4c-v2 Step 5 (CSW-blended log5 offset):
+#
+# CSW% information now flows through the OFFSET via the effective K rate
+# blend (Steps 1-4). The regression therefore has nothing to learn about
+# pitcher K-skill itself — that signal lives in the offset. We keep only
+# features that are structurally orthogonal to K skill:
+#
+# - pitcher_velocity_trend_z: form vs baseline, not absolute K level
+# - log_park_k_factor_by_hand: contextual / venue effect
+#
+# Plus the 19 archetype-TTO interaction terms (matchup decay, orthogonal
+# to skill level). pitcher_csw_pct_season_delta and
+# pitcher_chase_whiff_pct_30d_delta are both K-skill correlated and have
+# been removed from the regressor set — they belong inside the offset (CSW
+# via the blend) or are now redundant with what the offset captures.
 MAIN_REGRESSORS = (
-    "pitcher_csw_pct_season_delta",
     "pitcher_velocity_trend_z",
-    "pitcher_chase_whiff_pct_30d_delta",
     "log_park_k_factor_by_hand",
 )
 
@@ -312,10 +319,16 @@ def _build_per_pa_rows(
         if any(k not in feats_game for k in MAIN_REGRESSORS):
             n_games_skipped += 1
             continue
-        pitcher_k = feats_game.get("pitcher_k_pct_season_shrunk")
-        if pitcher_k is None:
+
+        # Phase 4c-v2 Step 5: use CSW-blended effective K rate as the
+        # pitcher input to log5 (instead of plain observed K%). CSW%
+        # information now flows into the OFFSET; the regression won't see
+        # CSW% as a competing regressor at all.
+        effective_k, _ = _compute_pitcher_effective_k_rate(bundle, ctx)
+        if effective_k is None:
             n_games_skipped += 1
             continue
+        pitcher_k = effective_k
 
         # Per-batter K rates
         per_batter_k = per_batter_k_pct_vs_hand(bundle)
