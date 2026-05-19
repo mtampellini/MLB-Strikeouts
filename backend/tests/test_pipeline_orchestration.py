@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from scripts.run_daily_picks import (
+    _categorize_skips,
     _merge_picks_with_snapshots,
     _same_minute_bucket,
     _snapshot_dict_from_pick,
@@ -217,6 +218,39 @@ def test_snapshot_dict_captures_time_varying_fields():
                    "ev_pct", "model_p", "model_e_k", "devig_source",
                    "tier", "rank_in_tier"):
         assert field in snap
+
+
+# ---- Dry-run smoke (no API hits) -------------------------------------------
+
+
+# ---- Skip categorization ---------------------------------------------------
+
+
+def test_categorize_skips_buckets_transient_separately():
+    skipped = [
+        {"reason": "lineup_not_posted", "is_transient": True},
+        {"reason": "lineup_not_posted", "is_transient": True},
+        {"reason": "projector_skipped: hard_filter: career_ip ...",
+         "is_transient": False},
+        {"reason": "no_market_data_at_either_book", "is_transient": False},
+    ]
+    breakdown = _categorize_skips(skipped)
+    assert breakdown["transient_lineup_not_posted"] == 2
+    assert breakdown["permanent_projector_skipped"] == 1
+    assert breakdown["permanent_no_market_data_at_either_book"] == 1
+
+
+def test_categorize_skips_empty_returns_empty_dict():
+    assert _categorize_skips([]) == {}
+
+
+def test_categorize_skips_defaults_to_permanent_when_flag_missing():
+    """Pre-amendment skip records without is_transient should be
+    classified as permanent (safer default — won't be confused with
+    lineup-pending)."""
+    skipped = [{"reason": "no_market_data_at_either_book"}]
+    breakdown = _categorize_skips(skipped)
+    assert "permanent_no_market_data_at_either_book" in breakdown
 
 
 # ---- Dry-run smoke (no API hits) -------------------------------------------

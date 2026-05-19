@@ -87,7 +87,24 @@ def _evaluate_pitcher_picks(
     all, returns ``([], skip_record)``. When projection succeeded but no
     lines pass the shadow threshold, returns ``([], None)`` (no skip — just
     no picks).
+
+    Transient pre-projection filter: if the opposing lineup has not been
+    posted yet, we skip without projecting. The same pitcher gets
+    re-evaluated on the next hourly run; once their lineup posts they
+    generate picks normally. ``is_transient`` distinguishes this from
+    permanent slate-day skips (career IP, no market data, projector
+    failures).
     """
+    if not bundle.opposing_lineup.lineup_posted:
+        return [], {
+            "pitcher_mlbam_id": bundle.metadata.pitcher_mlbam_id,
+            "pitcher_name": bundle.metadata.pitcher_name,
+            "game_pk": bundle.metadata.game_pk,
+            "reason": "lineup_not_posted",
+            "is_transient": True,
+            "detail": "Awaiting official lineup posting; will re-evaluate next run.",
+        }
+
     result = project(bundle, ctx)
     if result.skipped:
         return [], {
@@ -95,6 +112,7 @@ def _evaluate_pitcher_picks(
             "pitcher_name": bundle.metadata.pitcher_name,
             "game_pk": bundle.metadata.game_pk,
             "reason": f"projector_skipped: {result.skip_reason}",
+            "is_transient": False,
         }
 
     # Collect per-line market data per book
@@ -106,6 +124,7 @@ def _evaluate_pitcher_picks(
             "pitcher_name": bundle.metadata.pitcher_name,
             "game_pk": bundle.metadata.game_pk,
             "reason": "no_market_data_at_either_book",
+            "is_transient": False,
         }
 
     picks: list[dict] = []

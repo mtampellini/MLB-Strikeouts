@@ -136,6 +136,101 @@ def test_engine_skips_orphan_one_sided_line():
     assert len(all_picks) == 0
 
 
+def test_engine_transient_skip_when_lineup_not_posted():
+    """Bundle with opposing_lineup.lineup_posted=False -> transient skip,
+    no projection attempted, no picks generated."""
+    if not STEP4_SAMPLE.exists():
+        pytest.skip(f"{STEP4_SAMPLE} not present")
+    blob = json.loads(STEP4_SAMPLE.read_text(encoding="utf-8"))
+    blob = copy.deepcopy(blob)
+    # Posted lineup requires batters; un-posting requires empty batters
+    blob["opposing_lineup"]["lineup_posted"] = False
+    blob["opposing_lineup"]["batters"] = []
+    blob["market"] = {
+        "fanduel": {"available": True, "lines": [
+            {"line": 5.5, "side": "Over", "price": +200},
+            {"line": 5.5, "side": "Under", "price": -250},
+        ]},
+        "draftkings": {"available": False, "lines": []},
+        "snapshot_timestamp": "2026-05-17T15:30:00+00:00",
+        "snapshot_source": "live",
+    }
+    bundle = ProjectionBundle.from_dict(blob)
+    result = generate_picks([bundle], ctx=_ctx())
+    assert result.primary == []
+    assert result.secondary == []
+    assert result.shadow == []
+    assert len(result.skipped) == 1
+    skip = result.skipped[0]
+    assert skip["reason"] == "lineup_not_posted"
+    assert skip["is_transient"] is True
+    assert "re-evaluate" in skip["detail"]
+
+
+def test_engine_lineup_posted_generates_picks_normally():
+    """Bundle with lineup_posted=True (the loaded sample's default) and
+    real features generates picks like the happy-path test."""
+    lines_fd = [
+        {"line": 5.5, "side": "Over", "price": +200},
+        {"line": 5.5, "side": "Under", "price": -250},
+    ]
+    bundle = _bundle_with_synthetic_market(fanduel_lines=lines_fd)
+    assert bundle.opposing_lineup.lineup_posted is True  # baseline guard
+    result = generate_picks([bundle], ctx=_ctx())
+    total = result.primary + result.secondary + result.shadow
+    assert len(total) > 0
+    # No transient skips when lineup is posted
+    assert all(not s.get("is_transient") for s in result.skipped)
+
+
+def test_engine_idempotent_re_eval_when_lineup_posts_later():
+    """Same pitcher: 11am run has lineup_posted=False (transient skip,
+    no picks); 12pm run has lineup_posted=True (picks generated). The
+    11am run's skip record doesn't bleed into the 12pm picks — each
+    call to generate_picks is stateless w.r.t. prior runs, so the
+    12pm result's primary/secondary/shadow are populated solely by the
+    current bundle. Idempotency at the ledger level is the orchestrator's
+    job (covered in test_pipeline_orchestration); here we verify the
+    engine itself doesn't carry state."""
+    if not STEP4_SAMPLE.exists():
+        pytest.skip(f"{STEP4_SAMPLE} not present")
+    blob = json.loads(STEP4_SAMPLE.read_text(encoding="utf-8"))
+
+    # 11am run: lineup not yet posted
+    blob_11 = copy.deepcopy(blob)
+    blob_11["opposing_lineup"]["lineup_posted"] = False
+    blob_11["opposing_lineup"]["batters"] = []
+    blob_11["market"] = {
+        "fanduel": {"available": True, "lines": [
+            {"line": 5.5, "side": "Over", "price": +200},
+            {"line": 5.5, "side": "Under", "price": -250},
+        ]},
+        "draftkings": {"available": False, "lines": []},
+        "snapshot_timestamp": "2026-05-17T15:00:00+00:00",
+        "snapshot_source": "live",
+    }
+    r_11 = generate_picks([ProjectionBundle.from_dict(blob_11)], ctx=_ctx())
+    assert len(r_11.skipped) == 1
+    assert r_11.skipped[0]["reason"] == "lineup_not_posted"
+    assert (r_11.primary, r_11.secondary, r_11.shadow) == ([], [], [])
+
+    # 12pm run: same pitcher, lineup posted, picks generated
+    blob_12 = copy.deepcopy(blob)  # original sample has lineup_posted=True
+    blob_12["market"] = blob_11["market"]
+    r_12 = generate_picks([ProjectionBundle.from_dict(blob_12)], ctx=_ctx())
+    total_12 = r_12.primary + r_12.secondary + r_12.shadow
+    assert len(total_12) > 0
+    # 12pm result carries no transient skip
+    assert all(s.get("reason") != "lineup_not_posted" for s in r_12.skipped)
+
+    # Across runs, the SAME pick_id appears in 12pm (idempotency hook):
+    # if 11am's lineup-pending skip ever did emit picks, those pick_ids
+    # would conflict. They don't, so 12pm's pick set stands alone.
+    pick_ids_12 = {p["pick_id"] for p in total_12}
+    # 11am didn't emit picks for this pitcher, so no overlap to worry about
+    assert all(pid not in {} for pid in pick_ids_12)  # trivially true; documents intent
+
+
 def test_engine_skips_projector_failure():
     """If project() returns skipped, the bundle is added to skipped[]."""
     if not STEP4_SAMPLE.exists():

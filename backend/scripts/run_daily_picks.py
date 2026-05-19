@@ -253,6 +253,33 @@ def _build_bundles_for_date(target_date: date) -> list[ProjectionBundle]:
 # ---- Run log append --------------------------------------------------------
 
 
+def _categorize_skips(skipped: list[dict]) -> dict[str, int]:
+    """Group skip records into transient vs permanent buckets.
+
+    Transient: ``lineup_not_posted`` — the pitcher will be re-evaluated
+    next hourly run. Carried separately so the run log shows slate
+    buildup across the day (early runs are lineup-light; later runs fill
+    in as lineups post).
+
+    Permanent: every other skip reason on this slate (career IP, season
+    IP, archetype unavailable, no market data, projector failure). Once
+    a pitcher is permanently skipped, no future run today will pick them
+    up. Bucketed by the leading token of ``reason`` so the breakdown
+    stays human-readable: e.g. ``projector_skipped: hard_filter: ...``
+    collapses to ``permanent_projector_skipped``.
+    """
+    breakdown: dict[str, int] = {}
+    for s in skipped:
+        if s.get("is_transient"):
+            key = "transient_" + s["reason"]
+        else:
+            reason = s.get("reason", "unknown")
+            head = reason.split(":", 1)[0].strip()
+            key = "permanent_" + head
+        breakdown[key] = breakdown.get(key, 0) + 1
+    return breakdown
+
+
 def _append_run_log(run_log_path: Path, entry: dict) -> None:
     if run_log_path.exists():
         try:
@@ -312,15 +339,24 @@ def run_pipeline(
     merged = _merge_picks_with_snapshots(new_pick_list, existing, run_time)
     primary, secondary, shadow = _filter_by_tier(merged)
 
+    skip_breakdown = _categorize_skips(result.skipped)
+    n_lineup_pending = skip_breakdown.get("transient_lineup_not_posted", 0)
+    n_starters_evaluated = len(bundles) - n_lineup_pending
+
     summary = {
         "run_time": run_time.isoformat(timespec="seconds"),
         "target_date": target_date.isoformat(),
         "n_bundles": len(bundles),
+        "n_starters_scheduled": len(bundles),
+        "n_starters_evaluated": n_starters_evaluated,
+        "n_lineup_pending": n_lineup_pending,
+        "n_picks_generated": len(new_pick_list),
         "n_primary_active": len(primary),
         "n_secondary_active": len(secondary),
         "n_shadow_active": len(shadow),
         "n_total_merged": len(merged),
         "n_skipped_bundles": len(result.skipped),
+        "skip_breakdown": skip_breakdown,
         "snapshot_file": snapshot_filename,
         "dry_run": dry_run,
     }
