@@ -41,7 +41,10 @@ from src.projection.projector import project
 logger = logging.getLogger(__name__)
 
 PROCESSED_DIR = Path(__file__).resolve().parents[1] / "data" / "processed"
-OUT_FILE = Path(__file__).resolve().parents[1] / "data" / "phase3_v2c_v_smoke_results.json"
+# Phase 4c-v2 Step 3 verification: write to a NEW file so the Phase 3-v2c-v
+# reference output on disk is preserved for delta comparison.
+OUT_FILE = Path(__file__).resolve().parents[1] / "data" / "phase4c_v2_step3_verification.json"
+REFERENCE_FILE = Path(__file__).resolve().parents[1] / "data" / "phase3_v2c_v_smoke_results.json"
 
 ARCHETYPES = ("Power-FF", "Sinker-ball", "Breaking-heavy", "Offspeed-heavy", "Balanced")
 N_PER_ARCHETYPE = 4
@@ -265,15 +268,19 @@ def _run_smoke(seed: int = 42) -> dict:
                                   "reason": f"projector skipped: {result.skip_reason}"})
                 continue
 
-            # Per-batter source breakdown
+            # Per-batter source breakdown (skip the Phase 4c-v2 Step 3 _meta key)
             n_individual = 0
             n_league = 0
             if result.per_batter_breakdown:
-                for entry in result.per_batter_breakdown.values():
+                for k, entry in result.per_batter_breakdown.items():
+                    if k == "_meta":
+                        continue
                     if entry["k_rate_source"] == "individual":
                         n_individual += 1
                     elif entry["k_rate_source"] == "league_fallback":
                         n_league += 1
+
+            blend_meta = (result.per_batter_breakdown or {}).get("_meta") or {}
 
             results.append({
                 "archetype_assigned": arch,
@@ -291,6 +298,9 @@ def _run_smoke(seed: int = 42) -> dict:
                 "pa_distribution_bf_used": result.pa_distribution_bf_used,
                 "n_batters_individual": n_individual,
                 "n_batters_league_fallback": n_league,
+                # Phase 4c-v2 Step 3 metadata: empty dict for legacy bundles
+                # that didn't take the new path.
+                "blend_meta": blend_meta,
             })
 
     return {"results": results, "failures": failures}
@@ -390,6 +400,83 @@ def _sanity_check_batch(results: list[dict]) -> dict:
     return summary
 
 
+# ---- Step 3 verification: comparison vs Phase 3-v2c-v reference ------------
+
+
+def _compare_against_reference(new_results: list[dict]) -> dict:
+    """If the Phase 3-v2c-v reference file exists, compute per-pitcher and
+    per-archetype e_k deltas. Returns dict with deltas, summary, and any
+    games flagged with |delta| > 1.0."""
+    if not REFERENCE_FILE.exists():
+        return {"status": "no_reference_file", "path": str(REFERENCE_FILE)}
+    try:
+        ref_blob = json.loads(REFERENCE_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {"status": "reference_unreadable", "error": str(exc)}
+    ref_by_pid = {r["pitcher_id"]: r for r in ref_blob.get("results") or []}
+
+    deltas: list[dict] = []
+    by_arch_delta: dict[str, list[float]] = {a: [] for a in ARCHETYPES}
+    big_shifts: list[dict] = []
+    for r in new_results:
+        ref = ref_by_pid.get(r["pitcher_id"])
+        if ref is None:
+            continue
+        delta = r["e_k"] - ref["e_k"]
+        rec = {
+            "pitcher_name": r["pitcher_name"],
+            "archetype": r["archetype_assigned"],
+            "old_e_k": ref["e_k"],
+            "new_e_k": r["e_k"],
+            "delta": round(delta, 3),
+            "blend_confidence": (r.get("blend_meta") or {}).get("blend_confidence"),
+        }
+        deltas.append(rec)
+        by_arch_delta[r["archetype_assigned"]].append(delta)
+        if abs(delta) > 1.0:
+            big_shifts.append(rec)
+
+    arch_summary = {}
+    for arch, vals in by_arch_delta.items():
+        if not vals:
+            continue
+        arch_summary[arch] = {
+            "n_games": len(vals),
+            "mean_delta": round(mean(vals), 3),
+            "min_delta": round(min(vals), 3),
+            "max_delta": round(max(vals), 3),
+        }
+
+    all_deltas = [r["delta"] for r in deltas]
+    n_down = sum(1 for d in all_deltas if d < 0)
+    n_up = sum(1 for d in all_deltas if d > 0)
+    n_flat = sum(1 for d in all_deltas if d == 0)
+
+    return {
+        "status": "compared",
+        "n_games_compared": len(deltas),
+        "n_down_shift": n_down,
+        "n_up_shift": n_up,
+        "n_flat": n_flat,
+        "overall_mean_delta": round(mean(all_deltas), 3) if all_deltas else 0.0,
+        "overall_min_delta": round(min(all_deltas), 3) if all_deltas else 0.0,
+        "overall_max_delta": round(max(all_deltas), 3) if all_deltas else 0.0,
+        "by_archetype": arch_summary,
+        "per_pitcher_deltas": sorted(deltas, key=lambda d: d["delta"]),
+        "big_shifts_flagged": big_shifts,
+    }
+
+
+def _blend_confidence_dist(new_results: list[dict]) -> dict:
+    """Tally blend_confidence labels across the batch."""
+    counts: dict[str, int] = {}
+    for r in new_results:
+        meta = r.get("blend_meta") or {}
+        label = meta.get("blend_confidence") or "missing"
+        counts[label] = counts.get(label, 0) + 1
+    return counts
+
+
 # ---- CLI -------------------------------------------------------------------
 
 
@@ -424,6 +511,12 @@ def main(argv: list[str] | None = None) -> int:
         }
     payload["per_archetype_summary"] = by_arch_summary
 
+    # Phase 4c-v2 Step 3 verification: compare against the Phase 3-v2c-v
+    # reference results (if present) to confirm the CSW-blend wiring shifts
+    # are consistent and not Rasmussen-specific.
+    payload["step3_verification"] = _compare_against_reference(payload["results"])
+    payload["blend_confidence_distribution"] = _blend_confidence_dist(payload["results"])
+
     OUT_FILE.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
     logger.info("wrote %s", OUT_FILE)
 
@@ -451,6 +544,41 @@ def main(argv: list[str] | None = None) -> int:
         logger.warning("Failed bundles: %d", len(payload["failures"]))
         for f in payload["failures"]:
             logger.warning("  %s (%s): %s", f["pitcher"], f["archetype"], f["reason"])
+
+    # ---- Step 3 verification report ----
+    ver = payload.get("step3_verification") or {}
+    if ver.get("status") == "compared":
+        logger.info("=== Step 3 verification: e_k delta vs Phase 3-v2c-v ===")
+        logger.info(
+            "  n_games=%d  down=%d  up=%d  flat=%d  mean_delta=%+.3f  range=[%+.3f, %+.3f]",
+            ver["n_games_compared"], ver["n_down_shift"], ver["n_up_shift"],
+            ver["n_flat"], ver["overall_mean_delta"],
+            ver["overall_min_delta"], ver["overall_max_delta"],
+        )
+        logger.info("  per-archetype mean delta:")
+        for arch, summ in ver.get("by_archetype", {}).items():
+            logger.info(
+                "    %s: mean_delta=%+.3f range [%+.3f, %+.3f] (n=%d)",
+                arch, summ["mean_delta"], summ["min_delta"],
+                summ["max_delta"], summ["n_games"],
+            )
+        big = ver.get("big_shifts_flagged") or []
+        if big:
+            logger.warning("  big shifts (|delta| > 1.0):")
+            for b in big:
+                logger.warning(
+                    "    %s (%s): %.2f -> %.2f (delta=%+.3f, conf=%s)",
+                    b["pitcher_name"], b["archetype"],
+                    b["old_e_k"], b["new_e_k"], b["delta"], b["blend_confidence"],
+                )
+    else:
+        logger.info("=== Step 3 verification: no reference file (skipping) ===")
+
+    conf_dist = payload.get("blend_confidence_distribution") or {}
+    if conf_dist:
+        logger.info("=== Blend confidence distribution ===")
+        for label, n in sorted(conf_dist.items(), key=lambda kv: -kv[1]):
+            logger.info("  %s: %d", label, n)
 
     return 0 if all_pass and len(payload["results"]) >= 15 else 1
 
