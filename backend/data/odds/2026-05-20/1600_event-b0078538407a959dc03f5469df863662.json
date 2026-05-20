@@ -1,0 +1,202 @@
+{
+  "away_team": "Chicago White Sox",
+  "bookmakers": [
+    {
+      "key": "fanduel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T16:00:11Z",
+          "outcomes": [
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 2.5,
+              "price": -4500
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 3.5,
+              "price": -900
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 4.5,
+              "price": -320
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 5.5,
+              "price": -140
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 6.5,
+              "price": 154
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 7.5,
+              "price": 300
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 8.5,
+              "price": 630
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 2.5,
+              "price": -2000
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 3.5,
+              "price": -470
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 4.5,
+              "price": -194
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 5.5,
+              "price": 116
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 6.5,
+              "price": 235
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 7.5,
+              "price": 490
+            }
+          ]
+        }
+      ],
+      "title": "FanDuel"
+    },
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T16:00:03Z",
+          "outcomes": [
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 2.5,
+              "price": -2600
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 3.5,
+              "price": -690
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 4.5,
+              "price": -281
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 5.5,
+              "price": -129
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 6.5,
+              "price": 157
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 7.5,
+              "price": 320
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 8.5,
+              "price": 640
+            },
+            {
+              "description": "Emerson Hancock",
+              "name": "Over",
+              "point": 9.5,
+              "price": 1300
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 2.5,
+              "price": -1160
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 3.5,
+              "price": -389
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 4.5,
+              "price": -170
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 5.5,
+              "price": 124
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 6.5,
+              "price": 256
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 7.5,
+              "price": 517
+            },
+            {
+              "description": "Sean Burke",
+              "name": "Over",
+              "point": 8.5,
+              "price": 1020
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    }
+  ],
+  "commence_time": "2026-05-20T20:11:00Z",
+  "home_team": "Seattle Mariners",
+  "id": "b0078538407a959dc03f5469df863662",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}

@@ -1,0 +1,196 @@
+{
+  "away_team": "Cincinnati Reds",
+  "bookmakers": [
+    {
+      "key": "fanduel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T16:04:52Z",
+          "outcomes": [
+            {
+              "description": "Andrew Abbott",
+              "name": "Over",
+              "point": 2.5,
+              "price": -700
+            },
+            {
+              "description": "Andrew Abbott",
+              "name": "Over",
+              "point": 3.5,
+              "price": -235
+            },
+            {
+              "description": "Andrew Abbott",
+              "name": "Over",
+              "point": 4.5,
+              "price": 106
+            },
+            {
+              "description": "Andrew Abbott",
+              "name": "Over",
+              "point": 5.5,
+              "price": 225
+            },
+            {
+              "description": "Andrew Abbott",
+              "name": "Over",
+              "point": 6.5,
+              "price": 520
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 2.5,
+              "price": -3500
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 3.5,
+              "price": -750
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 4.5,
+              "price": -270
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 5.5,
+              "price": -122
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 6.5,
+              "price": 178
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 7.5,
+              "price": 360
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 8.5,
+              "price": 750
+            }
+          ]
+        }
+      ],
+      "title": "FanDuel"
+    },
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T16:04:45Z",
+          "outcomes": [
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 2.5,
+              "price": -2200
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 3.5,
+              "price": -650
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 4.5,
+              "price": -264
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 5.5,
+              "price": -125
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 6.5,
+              "price": 160
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 7.5,
+              "price": 317
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 8.5,
+              "price": 620
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 9.5,
+              "price": 1200
+            },
+            {
+              "description": "Andrew Abbott",
+              "name": "Over",
+              "point": 1.5,
+              "price": -2600
+            },
+            {
+              "description": "Andrew Abbott",
+              "name": "Over",
+              "point": 2.5,
+              "price": -561
+            },
+            {
+              "description": "Andrew Abbott",
+              "name": "Over",
+              "point": 3.5,
+              "price": -206
+            },
+            {
+              "description": "Andrew Abbott",
+              "name": "Over",
+              "point": 4.5,
+              "price": 108
+            },
+            {
+              "description": "Andrew Abbott",
+              "name": "Over",
+              "point": 5.5,
+              "price": 228
+            },
+            {
+              "description": "Andrew Abbott",
+              "name": "Over",
+              "point": 6.5,
+              "price": 488
+            },
+            {
+              "description": "Andrew Abbott",
+              "name": "Over",
+              "point": 7.5,
+              "price": 1040
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    }
+  ],
+  "commence_time": "2026-05-20T17:06:00Z",
+  "home_team": "Philadelphia Phillies",
+  "id": "44f850d55bfab7238e84fbd1b0e4c76f",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}

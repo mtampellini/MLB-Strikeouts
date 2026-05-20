@@ -1,0 +1,208 @@
+{
+  "away_team": "Toronto Blue Jays",
+  "bookmakers": [
+    {
+      "key": "fanduel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T16:02:40Z",
+          "outcomes": [
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 2.5,
+              "price": -4500
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 3.5,
+              "price": -900
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 4.5,
+              "price": -320
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 5.5,
+              "price": -136
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 6.5,
+              "price": 162
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 7.5,
+              "price": 310
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 8.5,
+              "price": 640
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 3.5,
+              "price": -1100
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 4.5,
+              "price": -380
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 5.5,
+              "price": -146
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 6.5,
+              "price": 138
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 7.5,
+              "price": 270
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 8.5,
+              "price": 520
+            }
+          ]
+        }
+      ],
+      "title": "FanDuel"
+    },
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T16:02:42Z",
+          "outcomes": [
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 2.5,
+              "price": -3700
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 3.5,
+              "price": -840
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 4.5,
+              "price": -324
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 5.5,
+              "price": -147
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 6.5,
+              "price": 137
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 7.5,
+              "price": 271
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 8.5,
+              "price": 542
+            },
+            {
+              "description": "Cam Schlittler",
+              "name": "Over",
+              "point": 9.5,
+              "price": 1040
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 2.5,
+              "price": -2900
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 3.5,
+              "price": -820
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 4.5,
+              "price": -332
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 5.5,
+              "price": -153
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 6.5,
+              "price": 135
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 7.5,
+              "price": 271
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 8.5,
+              "price": 532
+            },
+            {
+              "description": "Trey Yesavage",
+              "name": "Over",
+              "point": 9.5,
+              "price": 1040
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    }
+  ],
+  "commence_time": "2026-05-20T23:06:00Z",
+  "home_team": "New York Yankees",
+  "id": "e4390656e1c8d9fd196a4745760cdf05",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}

@@ -1,0 +1,148 @@
+{
+  "away_team": "New York Mets",
+  "bookmakers": [
+    {
+      "key": "fanduel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T16:01:19Z",
+          "outcomes": [
+            {
+              "description": "Zack Littell",
+              "name": "Over",
+              "point": 2.5,
+              "price": -136
+            },
+            {
+              "description": "Zack Littell",
+              "name": "Over",
+              "point": 3.5,
+              "price": 198
+            },
+            {
+              "description": "Zack Littell",
+              "name": "Over",
+              "point": 4.5,
+              "price": 490
+            },
+            {
+              "description": "Zach Thornton",
+              "name": "Over",
+              "point": 2.5,
+              "price": -360
+            },
+            {
+              "description": "Zach Thornton",
+              "name": "Over",
+              "point": 3.5,
+              "price": -118
+            },
+            {
+              "description": "Zach Thornton",
+              "name": "Over",
+              "point": 4.5,
+              "price": 188
+            },
+            {
+              "description": "Zach Thornton",
+              "name": "Over",
+              "point": 5.5,
+              "price": 410
+            }
+          ]
+        }
+      ],
+      "title": "FanDuel"
+    },
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T16:01:12Z",
+          "outcomes": [
+            {
+              "description": "Zach Thornton",
+              "name": "Over",
+              "point": 1.5,
+              "price": -1140
+            },
+            {
+              "description": "Zach Thornton",
+              "name": "Over",
+              "point": 2.5,
+              "price": -315
+            },
+            {
+              "description": "Zach Thornton",
+              "name": "Over",
+              "point": 3.5,
+              "price": -121
+            },
+            {
+              "description": "Zach Thornton",
+              "name": "Over",
+              "point": 4.5,
+              "price": 188
+            },
+            {
+              "description": "Zach Thornton",
+              "name": "Over",
+              "point": 5.5,
+              "price": 421
+            },
+            {
+              "description": "Zach Thornton",
+              "name": "Over",
+              "point": 6.5,
+              "price": 940
+            },
+            {
+              "description": "Zack Littell",
+              "name": "Over",
+              "point": 0.5,
+              "price": -3100
+            },
+            {
+              "description": "Zack Littell",
+              "name": "Over",
+              "point": 1.5,
+              "price": -441
+            },
+            {
+              "description": "Zack Littell",
+              "name": "Over",
+              "point": 2.5,
+              "price": -141
+            },
+            {
+              "description": "Zack Littell",
+              "name": "Over",
+              "point": 3.5,
+              "price": 183
+            },
+            {
+              "description": "Zack Littell",
+              "name": "Over",
+              "point": 4.5,
+              "price": 445
+            },
+            {
+              "description": "Zack Littell",
+              "name": "Over",
+              "point": 5.5,
+              "price": 1040
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    }
+  ],
+  "commence_time": "2026-05-20T22:46:00Z",
+  "home_team": "Washington Nationals",
+  "id": "2d368724e0c14ae2d63c7f7016e17330",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}

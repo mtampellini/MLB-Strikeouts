@@ -1,0 +1,196 @@
+{
+  "away_team": "Texas Rangers",
+  "bookmakers": [
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T16:02:53Z",
+          "outcomes": [
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 2.5,
+              "price": -1640
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 3.5,
+              "price": -523
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 4.5,
+              "price": -228
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 5.5,
+              "price": -112
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 6.5,
+              "price": 180
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 7.5,
+              "price": 345
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 8.5,
+              "price": 670
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 9.5,
+              "price": 1260
+            },
+            {
+              "description": "Kyle Freeland",
+              "name": "Over",
+              "point": 1.5,
+              "price": -1760
+            },
+            {
+              "description": "Kyle Freeland",
+              "name": "Over",
+              "point": 2.5,
+              "price": -459
+            },
+            {
+              "description": "Kyle Freeland",
+              "name": "Over",
+              "point": 3.5,
+              "price": -178
+            },
+            {
+              "description": "Kyle Freeland",
+              "name": "Over",
+              "point": 4.5,
+              "price": 125
+            },
+            {
+              "description": "Kyle Freeland",
+              "name": "Over",
+              "point": 5.5,
+              "price": 259
+            },
+            {
+              "description": "Kyle Freeland",
+              "name": "Over",
+              "point": 6.5,
+              "price": 551
+            },
+            {
+              "description": "Kyle Freeland",
+              "name": "Over",
+              "point": 7.5,
+              "price": 1100
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    },
+    {
+      "key": "fanduel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T16:02:33Z",
+          "outcomes": [
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 2.5,
+              "price": -3500
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 3.5,
+              "price": -700
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 4.5,
+              "price": -275
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 5.5,
+              "price": -120
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 6.5,
+              "price": 178
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 7.5,
+              "price": 360
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 8.5,
+              "price": 640
+            },
+            {
+              "description": "Kyle Freeland",
+              "name": "Over",
+              "point": 2.5,
+              "price": -670
+            },
+            {
+              "description": "Kyle Freeland",
+              "name": "Over",
+              "point": 3.5,
+              "price": -220
+            },
+            {
+              "description": "Kyle Freeland",
+              "name": "Over",
+              "point": 4.5,
+              "price": 114
+            },
+            {
+              "description": "Kyle Freeland",
+              "name": "Over",
+              "point": 5.5,
+              "price": 250
+            },
+            {
+              "description": "Kyle Freeland",
+              "name": "Over",
+              "point": 6.5,
+              "price": 550
+            }
+          ]
+        }
+      ],
+      "title": "FanDuel"
+    }
+  ],
+  "commence_time": "2026-05-20T19:10:00Z",
+  "home_team": "Colorado Rockies",
+  "id": "3846930337f62766087b0490c958713e",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}

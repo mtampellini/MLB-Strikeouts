@@ -1,0 +1,190 @@
+{
+  "away_team": "Baltimore Orioles",
+  "bookmakers": [
+    {
+      "key": "fanduel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T15:59:47Z",
+          "outcomes": [
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 2.5,
+              "price": -900
+            },
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 3.5,
+              "price": -275
+            },
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 4.5,
+              "price": -114
+            },
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 5.5,
+              "price": 194
+            },
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 6.5,
+              "price": 400
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 2.5,
+              "price": -580
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 3.5,
+              "price": -210
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 4.5,
+              "price": 112
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 5.5,
+              "price": 225
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 6.5,
+              "price": 410
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 7.5,
+              "price": 700
+            }
+          ]
+        }
+      ],
+      "title": "FanDuel"
+    },
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T15:59:57Z",
+          "outcomes": [
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 1.5,
+              "price": -3500
+            },
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 2.5,
+              "price": -710
+            },
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 3.5,
+              "price": -264
+            },
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 4.5,
+              "price": -117
+            },
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 5.5,
+              "price": 178
+            },
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 6.5,
+              "price": 363
+            },
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 7.5,
+              "price": 740
+            },
+            {
+              "description": "Shane Baz",
+              "name": "Over",
+              "point": 8.5,
+              "price": 1440
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 1.5,
+              "price": -1840
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 2.5,
+              "price": -492
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 3.5,
+              "price": -188
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 4.5,
+              "price": 121
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 5.5,
+              "price": 262
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 6.5,
+              "price": 572
+            },
+            {
+              "description": "Steven Matz",
+              "name": "Over",
+              "point": 7.5,
+              "price": 1220
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    }
+  ],
+  "commence_time": "2026-05-20T17:11:00Z",
+  "home_team": "Tampa Bay Rays",
+  "id": "7da6a18b316119afbe4c2a58d5c2cbce",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}

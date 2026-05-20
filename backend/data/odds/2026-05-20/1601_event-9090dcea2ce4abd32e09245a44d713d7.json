@@ -1,0 +1,184 @@
+{
+  "away_team": "Pittsburgh Pirates",
+  "bookmakers": [
+    {
+      "key": "fanduel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T16:00:59Z",
+          "outcomes": [
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 2.5,
+              "price": -650
+            },
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 3.5,
+              "price": -240
+            },
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 4.5,
+              "price": 100
+            },
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 5.5,
+              "price": 200
+            },
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 6.5,
+              "price": 390
+            },
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 7.5,
+              "price": 640
+            },
+            {
+              "description": "Michael McGreevy",
+              "name": "Over",
+              "point": 2.5,
+              "price": -470
+            },
+            {
+              "description": "Michael McGreevy",
+              "name": "Over",
+              "point": 3.5,
+              "price": -162
+            },
+            {
+              "description": "Michael McGreevy",
+              "name": "Over",
+              "point": 4.5,
+              "price": 154
+            },
+            {
+              "description": "Michael McGreevy",
+              "name": "Over",
+              "point": 5.5,
+              "price": 350
+            },
+            {
+              "description": "Michael McGreevy",
+              "name": "Over",
+              "point": 6.5,
+              "price": 700
+            }
+          ]
+        }
+      ],
+      "title": "FanDuel"
+    },
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T16:01:20Z",
+          "outcomes": [
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 1.5,
+              "price": -2400
+            },
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 2.5,
+              "price": -566
+            },
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 3.5,
+              "price": -206
+            },
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 4.5,
+              "price": 109
+            },
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 5.5,
+              "price": 231
+            },
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 6.5,
+              "price": 478
+            },
+            {
+              "description": "Carmen Mlodzinski",
+              "name": "Over",
+              "point": 7.5,
+              "price": 1000
+            },
+            {
+              "description": "Michael McGreevy",
+              "name": "Over",
+              "point": 1.5,
+              "price": -1820
+            },
+            {
+              "description": "Michael McGreevy",
+              "name": "Over",
+              "point": 2.5,
+              "price": -449
+            },
+            {
+              "description": "Michael McGreevy",
+              "name": "Over",
+              "point": 3.5,
+              "price": -167
+            },
+            {
+              "description": "Michael McGreevy",
+              "name": "Over",
+              "point": 4.5,
+              "price": 138
+            },
+            {
+              "description": "Michael McGreevy",
+              "name": "Over",
+              "point": 5.5,
+              "price": 301
+            },
+            {
+              "description": "Michael McGreevy",
+              "name": "Over",
+              "point": 6.5,
+              "price": 650
+            },
+            {
+              "description": "Michael McGreevy",
+              "name": "Over",
+              "point": 7.5,
+              "price": 1380
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    }
+  ],
+  "commence_time": "2026-05-20T23:46:00Z",
+  "home_team": "St. Louis Cardinals",
+  "id": "9090dcea2ce4abd32e09245a44d713d7",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}
