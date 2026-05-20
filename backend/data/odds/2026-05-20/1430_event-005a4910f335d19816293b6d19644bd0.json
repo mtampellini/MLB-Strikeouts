@@ -1,0 +1,190 @@
+{
+  "away_team": "Boston Red Sox",
+  "bookmakers": [
+    {
+      "key": "fanduel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T14:29:27Z",
+          "outcomes": [
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 2.5,
+              "price": -1000
+            },
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 3.5,
+              "price": -310
+            },
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 4.5,
+              "price": -125
+            },
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 5.5,
+              "price": 182
+            },
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 6.5,
+              "price": 370
+            },
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 7.5,
+              "price": 750
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 2.5,
+              "price": -1100
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 3.5,
+              "price": -320
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 4.5,
+              "price": -132
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 5.5,
+              "price": 172
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 6.5,
+              "price": 370
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 7.5,
+              "price": 750
+            }
+          ]
+        }
+      ],
+      "title": "FanDuel"
+    },
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T14:30:05Z",
+          "outcomes": [
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 2.5,
+              "price": -770
+            },
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 3.5,
+              "price": -270
+            },
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 4.5,
+              "price": -120
+            },
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 5.5,
+              "price": 174
+            },
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 6.5,
+              "price": 357
+            },
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 7.5,
+              "price": 730
+            },
+            {
+              "description": "Michael Wacha",
+              "name": "Over",
+              "point": 8.5,
+              "price": 1460
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 2.5,
+              "price": -800
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 3.5,
+              "price": -285
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 4.5,
+              "price": -123
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 5.5,
+              "price": 173
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 6.5,
+              "price": 358
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 7.5,
+              "price": 730
+            },
+            {
+              "description": "Connelly Early",
+              "name": "Over",
+              "point": 8.5,
+              "price": 1480
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    }
+  ],
+  "commence_time": "2026-05-20T23:41:00Z",
+  "home_team": "Kansas City Royals",
+  "id": "005a4910f335d19816293b6d19644bd0",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}

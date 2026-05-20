@@ -1,0 +1,202 @@
+{
+  "away_team": "Milwaukee Brewers",
+  "bookmakers": [
+    {
+      "key": "fanduel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T14:29:51Z",
+          "outcomes": [
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 2.5,
+              "price": -2200
+            },
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 3.5,
+              "price": -500
+            },
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 4.5,
+              "price": -192
+            },
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 5.5,
+              "price": 120
+            },
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 6.5,
+              "price": 250
+            },
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 7.5,
+              "price": 550
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 2.5,
+              "price": -2200
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 3.5,
+              "price": -580
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 4.5,
+              "price": -230
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 5.5,
+              "price": 110
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 6.5,
+              "price": 205
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 7.5,
+              "price": 400
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 8.5,
+              "price": 750
+            }
+          ]
+        }
+      ],
+      "title": "FanDuel"
+    },
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T14:30:02Z",
+          "outcomes": [
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 2.5,
+              "price": -1700
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 3.5,
+              "price": -507
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 4.5,
+              "price": -203
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 5.5,
+              "price": 105
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 6.5,
+              "price": 211
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 7.5,
+              "price": 440
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 8.5,
+              "price": 890
+            },
+            {
+              "description": "Kyle Harrison",
+              "name": "Over",
+              "point": 9.5,
+              "price": 1680
+            },
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 2.5,
+              "price": -1240
+            },
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 3.5,
+              "price": -414
+            },
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 4.5,
+              "price": -173
+            },
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 5.5,
+              "price": 123
+            },
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 6.5,
+              "price": 250
+            },
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 7.5,
+              "price": 504
+            },
+            {
+              "description": "Edward Cabrera",
+              "name": "Over",
+              "point": 8.5,
+              "price": 1020
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    }
+  ],
+  "commence_time": "2026-05-20T23:41:00Z",
+  "home_team": "Chicago Cubs",
+  "id": "7a000dccd00ad40a268d4d9160f1e0d3",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}

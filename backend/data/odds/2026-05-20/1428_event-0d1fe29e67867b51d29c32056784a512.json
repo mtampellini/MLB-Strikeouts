@@ -1,0 +1,178 @@
+{
+  "away_team": "San Francisco Giants",
+  "bookmakers": [
+    {
+      "key": "fanduel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T14:28:47Z",
+          "outcomes": [
+            {
+              "description": "Merrill Kelly",
+              "name": "Over",
+              "point": 2.5,
+              "price": -650
+            },
+            {
+              "description": "Merrill Kelly",
+              "name": "Over",
+              "point": 3.5,
+              "price": -215
+            },
+            {
+              "description": "Merrill Kelly",
+              "name": "Over",
+              "point": 4.5,
+              "price": 116
+            },
+            {
+              "description": "Merrill Kelly",
+              "name": "Over",
+              "point": 5.5,
+              "price": 270
+            },
+            {
+              "description": "Merrill Kelly",
+              "name": "Over",
+              "point": 6.5,
+              "price": 580
+            },
+            {
+              "description": "Tyler Mahle",
+              "name": "Over",
+              "point": 2.5,
+              "price": -600
+            },
+            {
+              "description": "Tyler Mahle",
+              "name": "Over",
+              "point": 3.5,
+              "price": -205
+            },
+            {
+              "description": "Tyler Mahle",
+              "name": "Over",
+              "point": 4.5,
+              "price": 124
+            },
+            {
+              "description": "Tyler Mahle",
+              "name": "Over",
+              "point": 5.5,
+              "price": 270
+            },
+            {
+              "description": "Tyler Mahle",
+              "name": "Over",
+              "point": 6.5,
+              "price": 580
+            }
+          ]
+        }
+      ],
+      "title": "FanDuel"
+    },
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T14:28:45Z",
+          "outcomes": [
+            {
+              "description": "Merrill Kelly",
+              "name": "Over",
+              "point": 1.5,
+              "price": -2300
+            },
+            {
+              "description": "Merrill Kelly",
+              "name": "Over",
+              "point": 2.5,
+              "price": -538
+            },
+            {
+              "description": "Merrill Kelly",
+              "name": "Over",
+              "point": 3.5,
+              "price": -200
+            },
+            {
+              "description": "Merrill Kelly",
+              "name": "Over",
+              "point": 4.5,
+              "price": 114
+            },
+            {
+              "description": "Merrill Kelly",
+              "name": "Over",
+              "point": 5.5,
+              "price": 247
+            },
+            {
+              "description": "Merrill Kelly",
+              "name": "Over",
+              "point": 6.5,
+              "price": 525
+            },
+            {
+              "description": "Merrill Kelly",
+              "name": "Over",
+              "point": 7.5,
+              "price": 1100
+            },
+            {
+              "description": "Tyler Mahle",
+              "name": "Over",
+              "point": 1.5,
+              "price": -1940
+            },
+            {
+              "description": "Tyler Mahle",
+              "name": "Over",
+              "point": 2.5,
+              "price": -461
+            },
+            {
+              "description": "Tyler Mahle",
+              "name": "Over",
+              "point": 3.5,
+              "price": -174
+            },
+            {
+              "description": "Tyler Mahle",
+              "name": "Over",
+              "point": 4.5,
+              "price": 133
+            },
+            {
+              "description": "Tyler Mahle",
+              "name": "Over",
+              "point": 5.5,
+              "price": 288
+            },
+            {
+              "description": "Tyler Mahle",
+              "name": "Over",
+              "point": 6.5,
+              "price": 596
+            },
+            {
+              "description": "Tyler Mahle",
+              "name": "Over",
+              "point": 7.5,
+              "price": 1240
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    }
+  ],
+  "commence_time": "2026-05-20T19:41:00Z",
+  "home_team": "Arizona Diamondbacks",
+  "id": "0d1fe29e67867b51d29c32056784a512",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}
