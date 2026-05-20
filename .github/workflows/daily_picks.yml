@@ -1,18 +1,26 @@
 name: Daily picks
 
-# Skeleton — fully wired in Phase 9. Cron schedule intentionally disabled
-# until Phase 7 ships the pipeline. workflow_dispatch only for now.
-
 on:
+  schedule:
+    # Hourly fires from 11:13am to 7:13pm ET (15:13 UTC to 23:13 UTC during EDT).
+    # Same wide-window pattern as HR-Picks (.github/workflows/daily_picks.yml):
+    #   1. Lineup-posting times span ~9 hours per day — afternoon games' lineups
+    #      post 9-10am; 10pm West Coast games' lineups don't post until 6pm ET.
+    #      Phase 7 amendment skips bundles with lineup_posted=False as transient,
+    #      so we need multiple fires per day to catch each game's posting window.
+    #   2. run_daily_picks is idempotent: each fire merges new picks into the
+    #      day's ledger. Fires that find no new lineups exit fast.
+    #   3. GitHub's scheduled-event scheduler is unreliable — 9 daily fires give
+    #      defense in depth.
+    # Off-hour minute (:13) to dodge top-of-hour cron contention.
+    - cron: "13 15-23 * * *"
   workflow_dispatch:
-  # schedule:
-  #   - cron: "13 15-23 * * *"  # 11:13am-7:13pm ET (EDT), matches HR repo pattern
 
 permissions:
   contents: write
 
 concurrency:
-  group: daily-picks
+  group: daily-picks-strikeouts
   cancel-in-progress: false
 
 jobs:
@@ -20,7 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+      ODDS_API_KEY_STRIKEOUTS: ${{ secrets.ODDS_API_KEY_STRIKEOUTS }}
+      ODDS_API_KEY_STRIKEOUTS_2: ${{ secrets.ODDS_API_KEY_STRIKEOUTS_2 }}
+      ODDS_API_KEY_STRIKEOUTS_3: ${{ secrets.ODDS_API_KEY_STRIKEOUTS_3 }}
+      ODDS_API_KEY_STRIKEOUTS_4: ${{ secrets.ODDS_API_KEY_STRIKEOUTS_4 }}
+      ODDS_API_KEY_STRIKEOUTS_5: ${{ secrets.ODDS_API_KEY_STRIKEOUTS_5 }}
 
     steps:
       - name: Checkout repo
@@ -28,8 +40,79 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Phase 1 placeholder
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Install backend dependencies
+        working-directory: backend
         run: |
-          echo "MLB-Strikeouts is at Phase 1 scaffold."
-          echo "Daily pick pipeline ships in Phase 7 and this workflow is enabled in Phase 9."
-          exit 0
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Sanity tests (fast)
+        working-directory: backend
+        run: pytest tests/ -q
+
+      - name: Run daily pipeline
+        working-directory: backend
+        run: python -m scripts.run_daily_picks
+
+      - name: Show summary
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          from datetime import datetime, timezone
+          today = datetime.now(timezone.utc).date().isoformat()
+          day_dir = pathlib.Path("backend/data/picks") / today
+          picks_path = day_dir / "picks.json"
+          run_log_path = day_dir / "run_log.json"
+          if not picks_path.exists():
+              print(f"no picks.json at {picks_path}"); raise SystemExit(0)
+          d = json.loads(picks_path.read_text())
+          md = d.get("metadata", {})
+          print(f"target_date={md.get('target_date')}")
+          print(f"bundles={md.get('n_bundles')}  "
+                f"evaluated={md.get('n_starters_evaluated')}  "
+                f"lineup_pending={md.get('n_lineup_pending')}")
+          print(f"primary={md.get('n_primary_active')}  "
+                f"secondary={md.get('n_secondary_active')}  "
+                f"shadow={md.get('n_shadow_active')}")
+          skips = md.get("skip_breakdown", {}) or {}
+          if skips:
+              print(f"skips: {skips}")
+          for pk in d.get("picks", [])[:5]:
+              print(f"  {pk.get('pitcher','?'):25s}  "
+                    f"line={pk.get('line')}  edge={pk.get('edge_pct')}%  "
+                    f"price={pk.get('best_price')}")
+          if run_log_path.exists():
+              rl = json.loads(run_log_path.read_text())
+              print(f"runs_today={len(rl.get('runs', []))}")
+          PY
+
+      - name: Commit picks + odds snapshot + caches
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend/data/picks backend/data/odds
+          git add backend/data/raw/player_id_cache.json backend/data/raw/probables_disagreements.jsonl
+          git add backend/data/processed
+          if git diff --staged --quiet; then
+            echo "no changes to commit"
+            exit 0
+          fi
+          git commit -m "Daily picks $(date -u +%Y-%m-%d) [ci skip]"
+          # Hourly fires can overlap; rebase-and-retry handles the push race.
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push; then
+              echo "push succeeded on attempt $i"
+              exit 0
+            fi
+            echo "push attempt $i failed, retrying after backoff..."
+            sleep $((RANDOM % 10 + 5))
+          done
+          echo "push failed after 5 attempts"
+          exit 1
