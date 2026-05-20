@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 from src.data.odds_client import (
+    _MAX_ENV_KEYS,
     ALLOWED_BOOKS,
     BudgetExhaustedError,
     CrossRepoKeyBleedError,
@@ -290,6 +291,11 @@ def test_missing_strikeouts_key_raises(monkeypatch):
     """
     monkeypatch.delenv(ENV_KEY_STRIKEOUTS, raising=False)
     monkeypatch.delenv(ENV_KEY_HR, raising=False)
+    # Indexed failover slots (added when multi-key failover landed) — clear
+    # these too so the test isn't sensitive to CI env where the daily-picks
+    # workflow exposes them via `env:` even when the underlying secret is unset.
+    for i in range(2, _MAX_ENV_KEYS + 1):
+        monkeypatch.delenv(f"{ENV_KEY_STRIKEOUTS}_{i}", raising=False)
     with pytest.raises(CrossRepoKeyBleedError, match=ENV_KEY_STRIKEOUTS):
         OddsAPIClient()
 
