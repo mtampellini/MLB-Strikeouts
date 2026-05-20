@@ -1,0 +1,46 @@
+{
+  "away_team": "Texas Rangers",
+  "bookmakers": [
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T20:41:14Z",
+          "outcomes": [
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 3.5,
+              "price": -525
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 4.5,
+              "price": -120
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 5.5,
+              "price": 280
+            },
+            {
+              "description": "Jack Leiter",
+              "name": "Over",
+              "point": 6.5,
+              "price": 950
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    }
+  ],
+  "commence_time": "2026-05-20T19:10:00Z",
+  "home_team": "Colorado Rockies",
+  "id": "3846930337f62766087b0490c958713e",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}

@@ -1,21 +1,22 @@
 {
   "metadata": {
-    "run_time": "2026-05-20T18:02:56+00:00",
+    "run_time": "2026-05-20T20:31:24+00:00",
     "target_date": "2026-05-20",
     "n_bundles": 24,
     "n_starters_scheduled": 24,
-    "n_starters_evaluated": 12,
-    "n_lineup_pending": 12,
+    "n_starters_evaluated": 22,
+    "n_lineup_pending": 2,
     "n_picks_generated": 0,
     "n_primary_active": 0,
     "n_secondary_active": 0,
     "n_shadow_active": 0,
     "n_total_merged": 0,
-    "n_skipped_bundles": 12,
+    "n_skipped_bundles": 3,
     "skip_breakdown": {
-      "transient_lineup_not_posted": 12
+      "permanent_projector_skipped": 1,
+      "transient_lineup_not_posted": 2
     },
-    "snapshot_file": "1802.json",
+    "snapshot_file": "2031.json",
     "dry_run": false
   },
   "picks": []
