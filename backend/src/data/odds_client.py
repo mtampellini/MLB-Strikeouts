@@ -65,6 +65,21 @@ class BudgetExhaustedError(RuntimeError):
     """API request budget dipped below the configured floor."""
 
 
+class QuotaExhaustedError(RuntimeError):
+    """401 OUT_OF_USAGE_CREDITS — the monthly quota for the active key is
+    spent. Distinct from BudgetExhaustedError (which is our local pre-flight
+    floor); both trigger key rotation in the multi-key failover loop.
+
+    Auth failures that would equally affect every key (invalid key, IP
+    block) are NOT mapped to this error — they propagate as
+    :class:`OddsAPIError` so we don't silently burn through every key
+    chasing the same problem."""
+
+
+class OddsAPIError(RuntimeError):
+    """Non-quota Odds API failure (HTTP 4xx/5xx other than 401-out-of-credits)."""
+
+
 class MissingSnapshotError(FileNotFoundError):
     """No committed snapshot exists for the requested historical date."""
 
@@ -221,7 +236,7 @@ class OddsAPIClient(AsOfClient):
     def __init__(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | list[str] | None = None,
         budget_floor: int = DEFAULT_BUDGET_FLOOR,
         fetch_events: Callable[[str], tuple[list[dict[str, Any]], dict[str, str]]] | None = None,
         fetch_event_odds: (
@@ -232,7 +247,14 @@ class OddsAPIClient(AsOfClient):
         clock: Callable[[], datetime] | None = None,
         player_cache_path: Path | None = None,
     ) -> None:
-        self._api_key = api_key if api_key is not None else _resolve_api_key()
+        self._api_keys: list[str] = _resolve_api_keys(api_key)
+        if not self._api_keys:
+            raise CrossRepoKeyBleedError(
+                f"OddsAPIClient: env var {ENV_KEY_STRIKEOUTS!r} is not set. "
+                f"This repo uses a dedicated Odds API key separate from "
+                f"{ENV_KEY_HR!r} (the HR-Picks key). See backend/README.md."
+            )
+        self._key_idx: int = 0
         self._budget_floor = budget_floor
         self._fetch_events = fetch_events or self._default_fetch_events
         self._fetch_event_odds = fetch_event_odds or self._default_fetch_event_odds
@@ -244,6 +266,38 @@ class OddsAPIClient(AsOfClient):
         self._player_cache_dirty = False
         self._budget_exhausted = False
         self._last_requests_remaining: int | None = None
+
+    # ---- Multi-key failover -------------------------------------------------
+
+    @property
+    def _api_key(self) -> str:
+        """Currently active API key. Rotates on quota / budget exhaustion."""
+        return self._api_keys[self._key_idx]
+
+    @property
+    def active_key_index(self) -> int:
+        return self._key_idx
+
+    @property
+    def num_keys(self) -> int:
+        return len(self._api_keys)
+
+    def _advance_key(self) -> bool:
+        """Move to the next configured key. Returns False if there is no
+        next key (caller should propagate the exhaustion error). Resets the
+        budget tracker — each key has its own monthly quota."""
+        if self._key_idx + 1 >= len(self._api_keys):
+            return False
+        logger.warning(
+            "OddsAPIClient: key index %d exhausted (remaining=%s); "
+            "rotating to key index %d (of %d configured)",
+            self._key_idx, self._last_requests_remaining,
+            self._key_idx + 1, len(self._api_keys),
+        )
+        self._key_idx += 1
+        self._budget_exhausted = False
+        self._last_requests_remaining = None
+        return True
 
     # ---- Budget pre-flight ---------------------------------------------------
 
@@ -278,7 +332,9 @@ class OddsAPIClient(AsOfClient):
     # ---- Live mode -----------------------------------------------------------
 
     def _fetch_live(self, target: date, *, dry_run: bool) -> list[EventOdds]:
-        events, headers = self._fetch_events(self._api_key or "")
+        events, headers = self._call_with_rotation(
+            lambda: self._fetch_events(self._api_key or "")
+        )
         self._update_budget(headers)
 
         out: list[EventOdds] = []
@@ -302,8 +358,13 @@ class OddsAPIClient(AsOfClient):
                     )
                 )
                 continue
-            self._guard_budget()
-            payload, headers = self._fetch_event_odds(self._api_key or "", event_id)
+            # If all keys exhaust, BudgetExhaustedError / QuotaExhaustedError
+            # propagates up — build_market_section already maps any exception
+            # to canonical empty-market state, which is the right downstream
+            # signal for every unfetched event.
+            payload, headers = self._call_with_rotation(
+                lambda eid=event_id: self._fetch_event_odds(self._api_key or "", eid)
+            )
             self._update_budget(headers)
             snapshot_path = self._persist_snapshot(target, event_id, payload)
             parsed = parse_event_odds_response(
@@ -325,6 +386,30 @@ class OddsAPIClient(AsOfClient):
             self._player_cache_dirty = False
 
         return out
+
+    def _call_with_rotation(self, call):
+        """Run an HTTP-issuing callable, rotating to the next key on
+        BudgetExhaustedError (our local floor tripped) or QuotaExhaustedError
+        (API returned 401 OUT_OF_USAGE_CREDITS).
+
+        Pre-flight: if the active key's budget already tripped on a prior
+        request in this client's lifetime, rotate BEFORE attempting the call —
+        no point spending a roundtrip just to learn what we already know.
+
+        Raises the original exhaustion error if no more keys remain."""
+        while True:
+            try:
+                self._guard_budget()
+            except BudgetExhaustedError as exc:
+                if not self._advance_key():
+                    raise
+                continue
+            try:
+                return call()
+            except (BudgetExhaustedError, QuotaExhaustedError) as exc:
+                if not self._advance_key():
+                    raise
+                continue
 
     # ---- Historical mode -----------------------------------------------------
 
@@ -453,7 +538,7 @@ class OddsAPIClient(AsOfClient):
         url = f"https://api.the-odds-api.com/v4/sports/{SPORT_KEY}/events"
         params = {"apiKey": api_key}
         resp = requests.get(url, params=params, timeout=30)
-        resp.raise_for_status()
+        _raise_for_quota_or_status(resp, url)
         return resp.json(), dict(resp.headers)
 
     @staticmethod
@@ -474,7 +559,7 @@ class OddsAPIClient(AsOfClient):
             "oddsFormat": "american",
         }
         resp = requests.get(url, params=params, timeout=30)
-        resp.raise_for_status()
+        _raise_for_quota_or_status(resp, url)
         return resp.json(), dict(resp.headers)
 
     # ---- Player resolution --------------------------------------------------
@@ -494,31 +579,85 @@ class OddsAPIClient(AsOfClient):
 # -------- Module helpers ------------------------------------------------------
 
 
-def _resolve_api_key() -> str:
-    """Resolve the strikeouts API key from env with cross-repo bleed guard.
+# Scan up to this many indexed env vars: ODDS_API_KEY_STRIKEOUTS,
+# _STRIKEOUTS_2, ... _STRIKEOUTS_5. Five is enough headroom for hand-managed
+# free-tier rotation; raise if needed.
+_MAX_ENV_KEYS = 5
 
-    Raises :class:`CrossRepoKeyBleedError` if:
-      - ``ODDS_API_KEY_STRIKEOUTS`` is not set, OR
-      - it equals ``ODDS_API_KEY`` (HR-Picks' key value).
 
-    The bleed guard only fires when *both* env vars are set and equal; if HR's
-    key isn't in the env (e.g. CI), the strikeouts key is accepted as-is.
-    """
-    strikeouts_key = os.environ.get(ENV_KEY_STRIKEOUTS)
-    if not strikeouts_key:
-        raise CrossRepoKeyBleedError(
-            f"OddsAPIClient: env var {ENV_KEY_STRIKEOUTS!r} is not set. "
-            f"This repo uses a dedicated Odds API key separate from "
-            f"{ENV_KEY_HR!r} (the HR-Picks key). See backend/README.md."
+def _resolve_api_keys(api_key: str | list[str] | None) -> list[str]:
+    """Build the ordered key list for OddsAPIClient.
+
+    Inputs accepted, in priority order:
+      1. ``api_key`` constructor arg: ``str`` (comma-separated OK) or ``list[str]``.
+      2. Env vars ``ODDS_API_KEY_STRIKEOUTS``, ``ODDS_API_KEY_STRIKEOUTS_2``,
+         ..., ``ODDS_API_KEY_STRIKEOUTS_{N}``. A comma-separated value is also
+         accepted (split here).
+
+    Cross-repo bleed guard fires only on the FIRST key resolved from env: if
+    ``ODDS_API_KEY_STRIKEOUTS`` equals ``ODDS_API_KEY`` (HR's key value),
+    raise. Indexed strikeouts keys (``_STRIKEOUTS_2`` etc.) are NOT checked
+    against HR — they're under the dedicated namespace.
+
+    Empties/duplicates removed while preserving order — secrets that aren't
+    configured in CI come through as empty strings."""
+    if api_key is not None:
+        raw = api_key if isinstance(api_key, list) else [api_key]
+    else:
+        primary = os.environ.get(ENV_KEY_STRIKEOUTS, "")
+        # Cross-repo bleed guard on the primary slot only.
+        if primary:
+            hr_key = os.environ.get(ENV_KEY_HR, "")
+            if hr_key and primary == hr_key:
+                raise CrossRepoKeyBleedError(
+                    f"OddsAPIClient: {ENV_KEY_STRIKEOUTS!r} equals "
+                    f"{ENV_KEY_HR!r}. This repo must use a separate API key — "
+                    f"sharing depletes the HR-Picks budget. Check your .env."
+                )
+        raw = [primary]
+        for i in range(2, _MAX_ENV_KEYS + 1):
+            raw.append(os.environ.get(f"{ENV_KEY_STRIKEOUTS}_{i}", ""))
+
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in raw:
+        if not item:
+            continue
+        for tok in item.split(","):
+            tok = tok.strip()
+            if tok and tok not in seen:
+                out.append(tok)
+                seen.add(tok)
+    return out
+
+
+def _is_out_of_credits(resp) -> bool:
+    """Return True iff the body indicates monthly quota exhaustion.
+
+    The Odds API returns 401 with JSON body containing
+    ``"error_code": "OUT_OF_USAGE_CREDITS"`` when the key's monthly budget
+    is gone. Distinguishing this from other 401s (e.g. invalid key) matters —
+    we only rotate on quota exhaustion, not on auth failures that would
+    affect every key equally."""
+    try:
+        body = resp.json()
+        if isinstance(body, dict) and body.get("error_code") == "OUT_OF_USAGE_CREDITS":
+            return True
+    except (ValueError, AttributeError):
+        pass
+    return "OUT_OF_USAGE_CREDITS" in (resp.text or "")
+
+
+def _raise_for_quota_or_status(resp, url: str) -> None:
+    """Replacement for ``raise_for_status`` that surfaces 401 OUT_OF_USAGE_CREDITS
+    as :class:`QuotaExhaustedError` so the rotation loop can act on it. All
+    other non-2xx responses propagate as :class:`OddsAPIError`."""
+    if resp.status_code == 401 and _is_out_of_credits(resp):
+        raise QuotaExhaustedError(
+            f"401 OUT_OF_USAGE_CREDITS from {url}: {resp.text[:200]}"
         )
-    hr_key = os.environ.get(ENV_KEY_HR)
-    if hr_key and strikeouts_key == hr_key:
-        raise CrossRepoKeyBleedError(
-            f"OddsAPIClient: {ENV_KEY_STRIKEOUTS!r} equals {ENV_KEY_HR!r}. "
-            f"This repo must use a separate API key — sharing depletes the "
-            f"HR-Picks budget. Check your .env."
-        )
-    return strikeouts_key
+    if not resp.ok:
+        raise OddsAPIError(f"{resp.status_code} from {url}: {resp.text[:200]}")
 
 
 def _commence_date(commence_time: str) -> date | None:

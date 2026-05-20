@@ -19,6 +19,7 @@ from src.data.odds_client import (
     MissingSnapshotError,
     OddsAPIClient,
     PitcherProp,
+    QuotaExhaustedError,
     american_to_implied,
     devig_two_sided,
     parse_event_odds_response,
@@ -335,6 +336,122 @@ def test_default_budget_floor_refuses_at_99(sample_event_odds_payload, tmp_path,
     monkeypatch.setattr(client, "_resolve_id", lambda n: 1)
     with pytest.raises(BudgetExhaustedError):
         client.fetch(cutoff_date=date(2026, 5, 17))
+
+
+# -------- Multi-key failover ------------------------------------------------
+
+
+def test_multi_key_resolution_from_indexed_env_vars(monkeypatch):
+    """_resolve_api_keys scans ODDS_API_KEY_STRIKEOUTS through _STRIKEOUTS_5."""
+    monkeypatch.setenv("ODDS_API_KEY_STRIKEOUTS",   "key1")
+    monkeypatch.setenv("ODDS_API_KEY_STRIKEOUTS_2", "key2")
+    monkeypatch.setenv("ODDS_API_KEY_STRIKEOUTS_3", "key3")
+    monkeypatch.delenv("ODDS_API_KEY", raising=False)
+    client = OddsAPIClient()
+    assert client.num_keys == 3
+    assert client._api_keys == ["key1", "key2", "key3"]
+    assert client._api_key == "key1"
+    assert client.active_key_index == 0
+
+
+def test_multi_key_dedup_preserves_order(monkeypatch):
+    """Duplicates across slots collapse; first occurrence wins."""
+    monkeypatch.setenv("ODDS_API_KEY_STRIKEOUTS",   "k")
+    monkeypatch.setenv("ODDS_API_KEY_STRIKEOUTS_2", "k")
+    monkeypatch.setenv("ODDS_API_KEY_STRIKEOUTS_3", "k2")
+    monkeypatch.delenv("ODDS_API_KEY", raising=False)
+    client = OddsAPIClient()
+    assert client._api_keys == ["k", "k2"]
+
+
+def test_failover_advances_to_next_key_on_budget_exhausted(
+    sample_event_odds_payload, tmp_path, monkeypatch,
+):
+    """First key's events fetch succeeds (returning budget=5 < floor=100),
+    but the post-fetch budget trip causes rotation before the per-event
+    odds fetches. Second key handles the per-event work."""
+    events_keys, odds_keys = [], []
+    def events_stub(key):
+        events_keys.append(key)
+        # k1 returns budget=5 (below floor) → trips _budget_exhausted; k2 healthy.
+        rem = 5 if key == "k1" else 500
+        return _stub_events_payload(), _stub_headers(rem)
+    def event_odds_stub(key, eid):
+        odds_keys.append(key)
+        return sample_event_odds_payload, _stub_headers(495)
+    client = OddsAPIClient(
+        api_key=["k1", "k2"],
+        fetch_events=events_stub,
+        fetch_event_odds=event_odds_stub,
+        snapshot_dir=tmp_path,
+        clock=lambda: datetime(2026, 5, 17, 11, 30, tzinfo=timezone.utc),
+    )
+    monkeypatch.setattr(client, "_resolve_id", lambda n: 1)
+    out = client.fetch(cutoff_date=date(2026, 5, 17))
+    # Events fetch consumed k1's last request; per-event fetches rotated to k2.
+    assert events_keys == ["k1"]
+    assert all(k == "k2" for k in odds_keys)
+    assert client.active_key_index == 1
+    assert len(out) > 0
+
+
+def test_failover_advances_on_quota_exhausted_401(
+    sample_event_odds_payload, tmp_path, monkeypatch,
+):
+    """First key's per-event fetch raises QuotaExhaustedError (simulating 401
+    OUT_OF_USAGE_CREDITS); rotation falls through to second key."""
+    calls = {"events": 0, "odds": 0}
+    def events_stub(key):
+        calls["events"] += 1
+        return _stub_events_payload(), _stub_headers(500)
+    def event_odds_stub(key, eid):
+        calls["odds"] += 1
+        if key == "k1":
+            raise QuotaExhaustedError("simulated 401 OUT_OF_USAGE_CREDITS on k1")
+        return sample_event_odds_payload, _stub_headers(495)
+    client = OddsAPIClient(
+        api_key=["k1", "k2"],
+        fetch_events=events_stub,
+        fetch_event_odds=event_odds_stub,
+        snapshot_dir=tmp_path,
+        clock=lambda: datetime(2026, 5, 17, 11, 30, tzinfo=timezone.utc),
+    )
+    monkeypatch.setattr(client, "_resolve_id", lambda n: 1)
+    out = client.fetch(cutoff_date=date(2026, 5, 17))
+    assert client.active_key_index == 1
+    assert len(out) > 0
+
+
+def test_failover_raises_when_all_keys_exhausted(
+    sample_event_odds_payload, tmp_path, monkeypatch,
+):
+    """Every key trips quota: error propagates, not silently swallowed."""
+    def events_stub(key):
+        raise QuotaExhaustedError(f"simulated quota out on {key}")
+    client = OddsAPIClient(
+        api_key=["k1", "k2"],
+        fetch_events=events_stub,
+        fetch_event_odds=lambda k, eid: (sample_event_odds_payload, _stub_headers(0)),
+        snapshot_dir=tmp_path,
+        clock=lambda: datetime(2026, 5, 17, 11, 30, tzinfo=timezone.utc),
+    )
+    with pytest.raises(QuotaExhaustedError):
+        client.fetch(cutoff_date=date(2026, 5, 17))
+    # Walked through both keys before giving up.
+    assert client.active_key_index == 1
+
+
+def test_is_out_of_credits_detects_json_error_code():
+    """_is_out_of_credits matches the 401 OUT_OF_USAGE_CREDITS body shape."""
+    from src.data.odds_client import _is_out_of_credits
+    class Resp:
+        def __init__(self, j, t=""):
+            self._j = j; self.text = t
+        def json(self): return self._j
+    assert _is_out_of_credits(Resp({"error_code": "OUT_OF_USAGE_CREDITS"})) is True
+    assert _is_out_of_credits(Resp({"error_code": "INVALID_KEY"})) is False
+    # Fallback text match
+    assert _is_out_of_credits(Resp({}, t="OUT_OF_USAGE_CREDITS in body")) is True
 
 
 def test_budget_status_before_any_fetch_returns_none_remaining():
