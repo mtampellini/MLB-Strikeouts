@@ -1,0 +1,232 @@
+{
+  "metadata": {
+    "generated_at": "2026-05-20T13:55:51Z",
+    "n_bundles": 24,
+    "n_total_picks_evaluated": 0,
+    "n_primary": 0,
+    "n_secondary": 0,
+    "n_shadow": 0,
+    "n_skipped": 24,
+    "nb_alpha": 0.001,
+    "books_traded": [
+      "fanduel",
+      "draftkings"
+    ],
+    "summary": {
+      "run_time": "2026-05-20T13:46:18+00:00",
+      "target_date": "2026-05-20",
+      "n_bundles": 24,
+      "n_starters_scheduled": 24,
+      "n_starters_evaluated": 0,
+      "n_lineup_pending": 24,
+      "n_picks_generated": 0,
+      "n_primary_active": 0,
+      "n_secondary_active": 0,
+      "n_shadow_active": 0,
+      "n_total_merged": 0,
+      "n_skipped_bundles": 24,
+      "skip_breakdown": {
+        "transient_lineup_not_posted": 24
+      },
+      "snapshot_file": "1346.json",
+      "dry_run": false
+    }
+  },
+  "primary": [],
+  "secondary": [],
+  "shadow": [],
+  "skipped": [
+    {
+      "pitcher_mlbam_id": 669358,
+      "pitcher_name": "Shane Baz",
+      "game_pk": 822977,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 813349,
+      "pitcher_name": "Connelly Early",
+      "game_pk": 824111,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 680732,
+      "pitcher_name": "Sean Burke",
+      "game_pk": 823134,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 676440,
+      "pitcher_name": "Tanner Bibee",
+      "game_pk": 824273,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 608379,
+      "pitcher_name": "Michael Wacha",
+      "game_pk": 824111,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 657746,
+      "pitcher_name": "Joe Ryan",
+      "game_pk": 823703,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 693645,
+      "pitcher_name": "Cam Schlittler",
+      "game_pk": 823547,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 676106,
+      "pitcher_name": "Emerson Hancock",
+      "game_pk": 823134,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 571927,
+      "pitcher_name": "Steven Matz",
+      "game_pk": 822977,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 683004,
+      "pitcher_name": "Jack Leiter",
+      "game_pk": 824355,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 702056,
+      "pitcher_name": "Trey Yesavage",
+      "game_pk": 823547,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 518876,
+      "pitcher_name": "Merrill Kelly",
+      "game_pk": 825084,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 519242,
+      "pitcher_name": "Chris Sale",
+      "game_pk": 823866,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 665795,
+      "pitcher_name": "Edward Cabrera",
+      "game_pk": 824678,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 671096,
+      "pitcher_name": "Andrew Abbott",
+      "game_pk": 823462,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 607536,
+      "pitcher_name": "Kyle Freeland",
+      "game_pk": 824355,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 676083,
+      "pitcher_name": "Janson Junk",
+      "game_pk": 823866,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 681347,
+      "pitcher_name": "Mike Burrows",
+      "game_pk": 823703,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 690986,
+      "pitcher_name": "Kyle Harrison",
+      "game_pk": 824678,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 641793,
+      "pitcher_name": "Zack Littell",
+      "game_pk": 822735,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 605400,
+      "pitcher_name": "Aaron Nola",
+      "game_pk": 823462,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 669387,
+      "pitcher_name": "Carmen Mlodzinski",
+      "game_pk": 823057,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 700241,
+      "pitcher_name": "Michael McGreevy",
+      "game_pk": 823057,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 641816,
+      "pitcher_name": "Tyler Mahle",
+      "game_pk": 825084,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "run_time": "2026-05-20T13:46:18+00:00",
+  "picks": [],
+  "metadata": {
+    "generated_at": "2026-05-20T13:55:51Z",
+    "n_bundles": 24,
+    "n_total_picks_evaluated": 0,
+    "n_primary": 0,
+    "n_secondary": 0,
+    "n_shadow": 0,
+    "n_skipped": 24,
+    "nb_alpha": 0.001,
+    "books_traded": [
+      "fanduel",
+      "draftkings"
+    ]
+  }
+}
