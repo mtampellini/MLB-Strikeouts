@@ -1,0 +1,82 @@
+{
+  "away_team": "Cincinnati Reds",
+  "bookmakers": [
+    {
+      "key": "fanduel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T18:04:18Z",
+          "outcomes": [
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 5.5,
+              "price": -2200
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 6.5,
+              "price": -300
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 7.5,
+              "price": 114
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 8.5,
+              "price": 310
+            }
+          ]
+        }
+      ],
+      "title": "FanDuel"
+    },
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-20T18:04:24Z",
+          "outcomes": [
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 6.5,
+              "price": -285
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 7.5,
+              "price": 105
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 8.5,
+              "price": 280
+            },
+            {
+              "description": "Aaron Nola",
+              "name": "Over",
+              "point": 9.5,
+              "price": 750
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    }
+  ],
+  "commence_time": "2026-05-20T17:06:00Z",
+  "home_team": "Philadelphia Phillies",
+  "id": "44f850d55bfab7238e84fbd1b0e4c76f",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}
