@@ -48,6 +48,7 @@ def write_picks(result: PickResult, output_dir: Path | str) -> dict[str, Path]:
             "secondary": result.secondary,
             "shadow": result.shadow,
             "skipped": result.skipped,
+            "rejected": result.rejected,
         }, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )

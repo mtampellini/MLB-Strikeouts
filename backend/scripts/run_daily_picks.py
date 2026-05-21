@@ -386,6 +386,7 @@ def run_pipeline(
             "secondary": secondary,
             "shadow": shadow,
             "skipped": result.skipped,
+            "rejected": result.rejected,
         }, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )

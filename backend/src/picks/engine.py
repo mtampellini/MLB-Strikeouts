@@ -52,6 +52,10 @@ class PickResult:
     secondary: list[dict]
     shadow: list[dict]
     skipped: list[dict]
+    # Below-shadow-threshold evaluations captured for diagnostic review.
+    # Each entry carries model_p / market_p / edge_pct so we can tell whether
+    # "0 picks" is the model collapsing to market or just a tight slate.
+    rejected: list[dict] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
 
 
@@ -80,13 +84,17 @@ def _pitcher_book_lines_from_bundle(
 
 def _evaluate_pitcher_picks(
     bundle: ProjectionBundle, ctx: ProjectionContext, nb_alpha: float,
-) -> tuple[list[dict], dict | None]:
+) -> tuple[list[dict], list[dict], dict | None]:
     """Run project + per-line edge evaluation for one bundle.
 
-    Returns ``(picks, skip_record)``. When the pitcher can't be projected at
-    all, returns ``([], skip_record)``. When projection succeeded but no
-    lines pass the shadow threshold, returns ``([], None)`` (no skip — just
-    no picks).
+    Returns ``(picks, rejected, skip_record)``. ``rejected`` is the list of
+    evaluations whose edge_pct fell below the shadow threshold — captured
+    for diagnostic review of slates with few/no picks.
+
+    When the pitcher can't be projected at all, returns
+    ``([], [], skip_record)``. When projection succeeded but no lines pass
+    the shadow threshold, returns ``([], rejected, None)`` (no skip — just
+    no picks, but rejected entries populated).
 
     Transient pre-projection filter: if the opposing lineup has not been
     posted yet, we skip without projecting. The same pitcher gets
@@ -96,7 +104,7 @@ def _evaluate_pitcher_picks(
     failures).
     """
     if not bundle.opposing_lineup.lineup_posted:
-        return [], {
+        return [], [], {
             "pitcher_mlbam_id": bundle.metadata.pitcher_mlbam_id,
             "pitcher_name": bundle.metadata.pitcher_name,
             "game_pk": bundle.metadata.game_pk,
@@ -107,7 +115,7 @@ def _evaluate_pitcher_picks(
 
     result = project(bundle, ctx)
     if result.skipped:
-        return [], {
+        return [], [], {
             "pitcher_mlbam_id": bundle.metadata.pitcher_mlbam_id,
             "pitcher_name": bundle.metadata.pitcher_name,
             "game_pk": bundle.metadata.game_pk,
@@ -119,7 +127,7 @@ def _evaluate_pitcher_picks(
     book_lines = {book: _pitcher_book_lines_from_bundle(bundle, book)
                    for book in TRADED_BOOKS}
     if not any(book_lines.values()):
-        return [], {
+        return [], [], {
             "pitcher_mlbam_id": bundle.metadata.pitcher_mlbam_id,
             "pitcher_name": bundle.metadata.pitcher_name,
             "game_pk": bundle.metadata.game_pk,
@@ -128,6 +136,7 @@ def _evaluate_pitcher_picks(
         }
 
     picks: list[dict] = []
+    rejected: list[dict] = []
     archetype = (
         result.archetype_used
         or (bundle.pitcher_archetype.archetype if bundle.pitcher_archetype else None)
@@ -154,6 +163,20 @@ def _evaluate_pitcher_picks(
 
                 edge = compute_edge_pct(model_p, market_p)
                 if edge < SHADOW_EDGE_THRESHOLD:
+                    rejected.append({
+                        "pitcher_mlbam_id": bundle.metadata.pitcher_mlbam_id,
+                        "pitcher_name": bundle.metadata.pitcher_name,
+                        "game_pk": bundle.metadata.game_pk,
+                        "line": line_value,
+                        "side": side,
+                        "book": book,
+                        "american_odds": american_odds,
+                        "model_p": round(model_p, 6),
+                        "market_p": round(market_p, 6),
+                        "edge_pct": round(edge, 6),
+                        "devig_source": devig_source,
+                        "model_e_k": round(result.e_k, 4),
+                    })
                     continue
                 ev = compute_ev_pct(model_p, american_odds)
                 pick = {
@@ -187,7 +210,7 @@ def _evaluate_pitcher_picks(
                 }
                 picks.append(pick)
 
-    return picks, None
+    return picks, rejected, None
 
 
 def generate_picks(
@@ -202,12 +225,14 @@ def generate_picks(
 
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     all_picks: list[dict] = []
+    all_rejected: list[dict] = []
     skipped: list[dict] = []
     n_bundles = 0
     for bundle in bundles:
         n_bundles += 1
-        picks, skip_record = _evaluate_pitcher_picks(bundle, ctx, nb_alpha)
+        picks, rejected, skip_record = _evaluate_pitcher_picks(bundle, ctx, nb_alpha)
         all_picks.extend(picks)
+        all_rejected.extend(rejected)
         if skip_record is not None:
             skipped.append(skip_record)
 
@@ -251,6 +276,7 @@ def generate_picks(
         "n_secondary": len(secondary),
         "n_shadow": len(shadow),
         "n_skipped": len(skipped),
+        "n_rejected": len(all_rejected),
         "nb_alpha": nb_alpha,
         "books_traded": list(TRADED_BOOKS),
     }
@@ -259,5 +285,6 @@ def generate_picks(
         secondary=secondary,
         shadow=shadow,
         skipped=skipped,
+        rejected=all_rejected,
         metadata=metadata,
     )
