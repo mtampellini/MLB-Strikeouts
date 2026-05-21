@@ -1,0 +1,136 @@
+{
+  "away_team": "New York Mets",
+  "bookmakers": [
+    {
+      "key": "fanduel",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-21T20:06:15Z",
+          "outcomes": [
+            {
+              "description": "Cade Cavalli",
+              "name": "Over",
+              "point": 2.5,
+              "price": -1450
+            },
+            {
+              "description": "Cade Cavalli",
+              "name": "Over",
+              "point": 3.5,
+              "price": -400
+            },
+            {
+              "description": "Cade Cavalli",
+              "name": "Over",
+              "point": 4.5,
+              "price": -152
+            },
+            {
+              "description": "Cade Cavalli",
+              "name": "Over",
+              "point": 5.5,
+              "price": 154
+            },
+            {
+              "description": "Cade Cavalli",
+              "name": "Over",
+              "point": 6.5,
+              "price": 320
+            },
+            {
+              "description": "Cade Cavalli",
+              "name": "Over",
+              "point": 7.5,
+              "price": 640
+            },
+            {
+              "description": "David Peterson",
+              "name": "Over",
+              "point": 2.5,
+              "price": -850
+            },
+            {
+              "description": "David Peterson",
+              "name": "Over",
+              "point": 3.5,
+              "price": -275
+            },
+            {
+              "description": "David Peterson",
+              "name": "Over",
+              "point": 4.5,
+              "price": -112
+            },
+            {
+              "description": "David Peterson",
+              "name": "Over",
+              "point": 5.5,
+              "price": 200
+            },
+            {
+              "description": "David Peterson",
+              "name": "Over",
+              "point": 6.5,
+              "price": 410
+            }
+          ]
+        }
+      ],
+      "title": "FanDuel"
+    },
+    {
+      "key": "draftkings",
+      "markets": [
+        {
+          "key": "pitcher_strikeouts_alternate",
+          "last_update": "2026-05-21T20:11:38Z",
+          "outcomes": [
+            {
+              "description": "Cade Cavalli",
+              "name": "Over",
+              "point": 3.5,
+              "price": -650
+            },
+            {
+              "description": "Cade Cavalli",
+              "name": "Over",
+              "point": 4.5,
+              "price": -235
+            },
+            {
+              "description": "Cade Cavalli",
+              "name": "Over",
+              "point": 5.5,
+              "price": -105
+            },
+            {
+              "description": "Cade Cavalli",
+              "name": "Over",
+              "point": 6.5,
+              "price": 210
+            },
+            {
+              "description": "Cade Cavalli",
+              "name": "Over",
+              "point": 7.5,
+              "price": 450
+            },
+            {
+              "description": "Cade Cavalli",
+              "name": "Over",
+              "point": 8.5,
+              "price": 1000
+            }
+          ]
+        }
+      ],
+      "title": "DraftKings"
+    }
+  ],
+  "commence_time": "2026-05-21T20:06:00Z",
+  "home_team": "Washington Nationals",
+  "id": "6a7d1b1febdcfcc35087e32a118d0e3e",
+  "sport_key": "baseball_mlb",
+  "sport_title": "MLB"
+}
