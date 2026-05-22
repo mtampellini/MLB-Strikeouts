@@ -29,6 +29,17 @@
       "skip_breakdown": {},
       "snapshot_file": "2318.json",
       "dry_run": false
+    },
+    "settlement_summary": {
+      "date": "2026-05-21",
+      "n_picks_settled": 0,
+      "n_wins": 0,
+      "n_losses": 0,
+      "n_pushes": 0,
+      "n_no_start": 0,
+      "dry_run": false,
+      "profit_loss_first_seen_units_total": 0,
+      "profit_loss_closing_units_total": 0
     }
   },
   "primary": [],
