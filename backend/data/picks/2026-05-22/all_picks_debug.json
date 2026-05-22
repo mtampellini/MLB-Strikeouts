@@ -1,0 +1,193 @@
+{
+  "metadata": {
+    "generated_at": "2026-05-22T17:23:32Z",
+    "n_bundles": 19,
+    "n_total_picks_evaluated": 0,
+    "n_primary": 0,
+    "n_secondary": 0,
+    "n_shadow": 0,
+    "n_skipped": 19,
+    "n_rejected": 0,
+    "nb_alpha": 0.001,
+    "books_traded": [
+      "fanduel",
+      "draftkings"
+    ],
+    "summary": {
+      "run_time": "2026-05-22T17:19:18+00:00",
+      "target_date": "2026-05-22",
+      "n_bundles": 19,
+      "n_starters_scheduled": 19,
+      "n_starters_evaluated": 2,
+      "n_lineup_pending": 17,
+      "n_picks_generated": 0,
+      "n_primary_active": 0,
+      "n_secondary_active": 0,
+      "n_shadow_active": 0,
+      "n_total_merged": 0,
+      "n_skipped_bundles": 19,
+      "skip_breakdown": {
+        "transient_lineup_not_posted": 17,
+        "permanent_no_market_data_at_either_book": 2
+      },
+      "snapshot_file": "1719.json",
+      "dry_run": false
+    }
+  },
+  "primary": [],
+  "secondary": [],
+  "shadow": [],
+  "skipped": [
+    {
+      "pitcher_mlbam_id": 605135,
+      "pitcher_name": "Chris Bassitt",
+      "game_pk": 824842,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 801139,
+      "pitcher_name": "Payton Tolle",
+      "game_pk": 824761,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 668909,
+      "pitcher_name": "Gavin Williams",
+      "game_pk": 823461,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 656427,
+      "pitcher_name": "Jack Flaherty",
+      "game_pk": 824842,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 702070,
+      "pitcher_name": "Noah Cameron",
+      "game_pk": 824110,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 687570,
+      "pitcher_name": "Connor Prielipp",
+      "game_pk": 824761,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 543037,
+      "pitcher_name": "Gerrit Cole",
+      "game_pk": 823546,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 669302,
+      "pitcher_name": "Logan Gilbert",
+      "game_pk": 824110,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 592332,
+      "pitcher_name": "Kevin Gausman",
+      "game_pk": 822816,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 592791,
+      "pitcher_name": "Jameson Taillon",
+      "game_pk": 824679,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 663978,
+      "pitcher_name": "Chris Paddack",
+      "game_pk": 824518,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 691587,
+      "pitcher_name": "Eury Pérez",
+      "game_pk": 823863,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 681293,
+      "pitcher_name": "Spencer Arrighetti",
+      "game_pk": 824679,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 680736,
+      "pitcher_name": "Justin Wrobleski",
+      "game_pk": 823788,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 701656,
+      "pitcher_name": "Logan Henderson",
+      "game_pk": 823788,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 571945,
+      "pitcher_name": "Miles Mikolas",
+      "game_pk": 824922,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 668964,
+      "pitcher_name": "Tobias Myers",
+      "game_pk": 823863,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 696149,
+      "pitcher_name": "Bubba Chandler",
+      "game_pk": 822816,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 681517,
+      "pitcher_name": "Kyle Leahy",
+      "game_pk": 824518,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    }
+  ],
+  "rejected": []
+}
