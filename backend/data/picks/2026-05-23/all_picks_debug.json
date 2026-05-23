@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated_at": "2026-05-23T21:15:44Z",
+    "generated_at": "2026-05-23T22:16:11Z",
     "n_bundles": 20,
     "n_total_picks_evaluated": 0,
     "n_primary": 0,
@@ -14,7 +14,7 @@
       "draftkings"
     ],
     "summary": {
-      "run_time": "2026-05-23T21:08:36+00:00",
+      "run_time": "2026-05-23T22:09:38+00:00",
       "target_date": "2026-05-23",
       "n_bundles": 20,
       "n_starters_scheduled": 20,
@@ -30,7 +30,7 @@
         "permanent_no_market_data_at_either_book": 18,
         "permanent_projector_skipped": 2
       },
-      "snapshot_file": "2108.json",
+      "snapshot_file": "2209.json",
       "dry_run": false
     }
   },
