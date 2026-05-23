@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated_at": "2026-05-23T19:44:40Z",
+    "generated_at": "2026-05-23T21:15:44Z",
     "n_bundles": 20,
     "n_total_picks_evaluated": 0,
     "n_primary": 0,
@@ -14,12 +14,12 @@
       "draftkings"
     ],
     "summary": {
-      "run_time": "2026-05-23T19:38:30+00:00",
+      "run_time": "2026-05-23T21:08:36+00:00",
       "target_date": "2026-05-23",
       "n_bundles": 20,
       "n_starters_scheduled": 20,
-      "n_starters_evaluated": 16,
-      "n_lineup_pending": 4,
+      "n_starters_evaluated": 20,
+      "n_lineup_pending": 0,
       "n_picks_generated": 0,
       "n_primary_active": 0,
       "n_secondary_active": 0,
@@ -27,10 +27,10 @@
       "n_total_merged": 0,
       "n_skipped_bundles": 20,
       "skip_breakdown": {
-        "permanent_no_market_data_at_either_book": 16,
-        "transient_lineup_not_posted": 4
+        "permanent_no_market_data_at_either_book": 18,
+        "permanent_projector_skipped": 2
       },
-      "snapshot_file": "1938.json",
+      "snapshot_file": "2108.json",
       "dry_run": false
     }
   },
@@ -98,9 +98,8 @@
       "pitcher_mlbam_id": 695534,
       "pitcher_name": "Chase Petty",
       "game_pk": 824516,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "projector_skipped: hard_filter: career IP < 50 (estimated 14.7 from season+prior_year PA/4.3)",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 676974,
@@ -120,17 +119,15 @@
       "pitcher_mlbam_id": 808963,
       "pitcher_name": "Roki Sasaki",
       "game_pk": 823787,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 688107,
       "pitcher_name": "Robert Gasser",
       "game_pk": 823787,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "projector_skipped: hard_filter: career IP < 50 (estimated 15.3 from season+prior_year PA/4.3)",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 663623,
@@ -171,9 +168,8 @@
       "pitcher_mlbam_id": 681517,
       "pitcher_name": "Kyle Leahy",
       "game_pk": 824516,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 605288,
