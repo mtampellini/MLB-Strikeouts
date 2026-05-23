@@ -1,12 +1,12 @@
 {
   "metadata": {
-    "generated_at": "2026-05-23T16:18:15Z",
-    "n_bundles": 21,
+    "generated_at": "2026-05-23T17:37:24Z",
+    "n_bundles": 20,
     "n_total_picks_evaluated": 0,
     "n_primary": 0,
     "n_secondary": 0,
     "n_shadow": 0,
-    "n_skipped": 21,
+    "n_skipped": 20,
     "n_rejected": 0,
     "nb_alpha": 0.001,
     "books_traded": [
@@ -14,23 +14,23 @@
       "draftkings"
     ],
     "summary": {
-      "run_time": "2026-05-23T16:13:18+00:00",
+      "run_time": "2026-05-23T17:29:34+00:00",
       "target_date": "2026-05-23",
-      "n_bundles": 21,
-      "n_starters_scheduled": 21,
-      "n_starters_evaluated": 6,
-      "n_lineup_pending": 15,
+      "n_bundles": 20,
+      "n_starters_scheduled": 20,
+      "n_starters_evaluated": 16,
+      "n_lineup_pending": 4,
       "n_picks_generated": 0,
       "n_primary_active": 0,
       "n_secondary_active": 0,
       "n_shadow_active": 0,
       "n_total_merged": 0,
-      "n_skipped_bundles": 21,
+      "n_skipped_bundles": 20,
       "skip_breakdown": {
-        "transient_lineup_not_posted": 15,
-        "permanent_no_market_data_at_either_book": 6
+        "permanent_no_market_data_at_either_book": 16,
+        "transient_lineup_not_posted": 4
       },
-      "snapshot_file": "1613.json",
+      "snapshot_file": "1729.json",
       "dry_run": false
     }
   },
@@ -39,52 +39,32 @@
   "shadow": [],
   "skipped": [
     {
-      "pitcher_mlbam_id": 687064,
-      "pitcher_name": "Brandon Young",
-      "game_pk": 824840,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
-    },
-    {
       "pitcher_mlbam_id": 677944,
       "pitcher_name": "Slade Cecconi",
       "game_pk": 823458,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
-    },
-    {
-      "pitcher_mlbam_id": 664285,
-      "pitcher_name": "Framber Valdez",
-      "game_pk": 824840,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 663568,
       "pitcher_name": "Stephen Kolek",
       "game_pk": 824109,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 671737,
       "pitcher_name": "Taj Bradley",
       "game_pk": 824760,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 669923,
       "pitcher_name": "George Kirby",
       "game_pk": 824109,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 571578,
@@ -97,9 +77,8 @@
       "pitcher_mlbam_id": 656550,
       "pitcher_name": "Grant Holmes",
       "game_pk": 824920,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 607067,
@@ -122,6 +101,13 @@
       "reason": "lineup_not_posted",
       "is_transient": true,
       "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 676974,
+      "pitcher_name": "Max Meyer",
+      "game_pk": 823862,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 678906,
@@ -150,25 +136,22 @@
       "pitcher_mlbam_id": 663623,
       "pitcher_name": "Jake Irvin",
       "game_pk": 824920,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 642547,
       "pitcher_name": "Freddy Peralta",
       "game_pk": 823862,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 554430,
       "pitcher_name": "Zack Wheeler",
       "game_pk": 823458,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 694973,
@@ -196,9 +179,8 @@
       "pitcher_mlbam_id": 605288,
       "pitcher_name": "Adrian Houser",
       "game_pk": 823222,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     }
   ],
   "rejected": []
