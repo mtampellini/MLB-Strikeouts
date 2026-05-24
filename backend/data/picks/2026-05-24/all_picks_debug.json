@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated_at": "2026-05-24T19:50:44Z",
+    "generated_at": "2026-05-24T21:19:48Z",
     "n_bundles": 27,
     "n_total_picks_evaluated": 0,
     "n_primary": 0,
@@ -14,12 +14,12 @@
       "draftkings"
     ],
     "summary": {
-      "run_time": "2026-05-24T19:42:34+00:00",
+      "run_time": "2026-05-24T21:11:40+00:00",
       "target_date": "2026-05-24",
       "n_bundles": 27,
       "n_starters_scheduled": 27,
-      "n_starters_evaluated": 23,
-      "n_lineup_pending": 4,
+      "n_starters_evaluated": 27,
+      "n_lineup_pending": 0,
       "n_picks_generated": 0,
       "n_primary_active": 0,
       "n_secondary_active": 0,
@@ -27,11 +27,10 @@
       "n_total_merged": 0,
       "n_skipped_bundles": 27,
       "skip_breakdown": {
-        "transient_lineup_not_posted": 4,
-        "permanent_no_market_data_at_either_book": 19,
-        "permanent_projector_skipped": 4
+        "permanent_no_market_data_at_either_book": 22,
+        "permanent_projector_skipped": 5
       },
-      "snapshot_file": "1942.json",
+      "snapshot_file": "2111.json",
       "dry_run": false
     }
   },
@@ -43,9 +42,8 @@
       "pitcher_mlbam_id": 672282,
       "pitcher_name": "Reid Detmers",
       "game_pk": 824028,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 687064,
@@ -58,9 +56,8 @@
       "pitcher_mlbam_id": 669432,
       "pitcher_name": "Trevor Rogers",
       "game_pk": 824840,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 543243,
@@ -94,9 +91,8 @@
       "pitcher_mlbam_id": 675512,
       "pitcher_name": "Troy Melton",
       "game_pk": 824840,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "projector_skipped: hard_filter: season IP < 20 AND prior_year IP < 80 (estimated season=0.0, prior=50.5)",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 607625,
@@ -137,9 +133,8 @@
       "pitcher_mlbam_id": 669022,
       "pitcher_name": "MacKenzie Gore",
       "game_pk": 824028,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 656302,
