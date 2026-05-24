@@ -1,12 +1,12 @@
 {
   "metadata": {
-    "generated_at": "2026-05-24T00:18:03Z",
-    "n_bundles": 24,
+    "generated_at": "2026-05-24T16:26:28Z",
+    "n_bundles": 27,
     "n_total_picks_evaluated": 0,
     "n_primary": 0,
     "n_secondary": 0,
     "n_shadow": 0,
-    "n_skipped": 24,
+    "n_skipped": 27,
     "n_rejected": 0,
     "nb_alpha": 0.001,
     "books_traded": [
@@ -14,22 +14,24 @@
       "draftkings"
     ],
     "summary": {
-      "run_time": "2026-05-24T00:14:24+00:00",
+      "run_time": "2026-05-24T16:15:16+00:00",
       "target_date": "2026-05-24",
-      "n_bundles": 24,
-      "n_starters_scheduled": 24,
-      "n_starters_evaluated": 0,
-      "n_lineup_pending": 24,
+      "n_bundles": 27,
+      "n_starters_scheduled": 27,
+      "n_starters_evaluated": 19,
+      "n_lineup_pending": 8,
       "n_picks_generated": 0,
       "n_primary_active": 0,
       "n_secondary_active": 0,
       "n_shadow_active": 0,
       "n_total_merged": 0,
-      "n_skipped_bundles": 24,
+      "n_skipped_bundles": 27,
       "skip_breakdown": {
-        "transient_lineup_not_posted": 24
+        "transient_lineup_not_posted": 8,
+        "permanent_no_market_data_at_either_book": 16,
+        "permanent_projector_skipped": 3
       },
-      "snapshot_file": "0014.json",
+      "snapshot_file": "1615.json",
       "dry_run": false
     }
   },
@@ -46,12 +48,26 @@
       "detail": "Awaiting official lineup posting; will re-evaluate next run."
     },
     {
-      "pitcher_mlbam_id": 543243,
-      "pitcher_name": "Sonny Gray",
-      "game_pk": 824759,
+      "pitcher_mlbam_id": 687064,
+      "pitcher_name": "Brandon Young",
+      "game_pk": 824839,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 669432,
+      "pitcher_name": "Trevor Rogers",
+      "game_pk": 824840,
       "reason": "lineup_not_posted",
       "is_transient": true,
       "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 543243,
+      "pitcher_name": "Sonny Gray",
+      "game_pk": 824759,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 702273,
@@ -65,46 +81,55 @@
       "pitcher_mlbam_id": 800048,
       "pitcher_name": "Parker Messick",
       "game_pk": 823459,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 664285,
+      "pitcher_name": "Framber Valdez",
+      "game_pk": 824839,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 607625,
       "pitcher_name": "Seth Lugo",
       "game_pk": 824108,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 641927,
       "pitcher_name": "Bailey Ober",
       "game_pk": 824759,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 677960,
       "pitcher_name": "Ryan Weathers",
       "game_pk": 823544,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 693433,
       "pitcher_name": "Bryan Woo",
       "game_pk": 824108,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 656876,
       "pitcher_name": "Drew Rasmussen",
       "game_pk": 823544,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 669022,
+      "pitcher_name": "MacKenzie Gore",
+      "game_pk": 824028,
       "reason": "lineup_not_posted",
       "is_transient": true,
       "detail": "Awaiting official lineup posting; will re-evaluate next run."
@@ -113,9 +138,8 @@
       "pitcher_mlbam_id": 656302,
       "pitcher_name": "Dylan Cease",
       "game_pk": 822813,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 669194,
@@ -129,17 +153,15 @@
       "pitcher_mlbam_id": 684007,
       "pitcher_name": "Shota Imanaga",
       "game_pk": 824676,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 663903,
       "pitcher_name": "Brady Singer",
       "game_pk": 824514,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 500779,
@@ -153,33 +175,29 @@
       "pitcher_mlbam_id": 663969,
       "pitcher_name": "Tyler Phillips",
       "game_pk": 823861,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 663567,
       "pitcher_name": "Peter Lambert",
       "game_pk": 824676,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "projector_skipped: hard_filter: career IP < 50 (estimated 33.5 from season+prior_year PA/4.3)",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 808967,
       "pitcher_name": "Yoshinobu Yamamoto",
       "game_pk": 823786,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 687075,
       "pitcher_name": "Brandon Sproat",
       "game_pk": 823786,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 656492,
@@ -193,33 +211,22 @@
       "pitcher_mlbam_id": 681035,
       "pitcher_name": "Christian Scott",
       "game_pk": 823861,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "projector_skipped: hard_filter: career IP < 50 (estimated 20.9 from season+prior_year PA/4.3)",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 691725,
       "pitcher_name": "Andrew Painter",
       "game_pk": 823459,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "projector_skipped: hard_filter: career IP < 50 (estimated 45.1 from season+prior_year PA/4.3)",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 656605,
       "pitcher_name": "Mitch Keller",
       "game_pk": 822813,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
-    },
-    {
-      "pitcher_mlbam_id": 669461,
-      "pitcher_name": "Matthew Liberatore",
-      "game_pk": 824514,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 592662,
