@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "run_time": "2026-05-24T22:13:21+00:00",
+    "run_time": "2026-05-24T23:18:12+00:00",
     "target_date": "2026-05-24",
     "n_bundles": 27,
     "n_starters_scheduled": 27,
@@ -16,7 +16,7 @@
       "permanent_no_market_data_at_either_book": 22,
       "permanent_projector_skipped": 5
     },
-    "snapshot_file": "2213.json",
+    "snapshot_file": "2318.json",
     "dry_run": false
   },
   "picks": []
