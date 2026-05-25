@@ -1,0 +1,192 @@
+{
+  "metadata": {
+    "generated_at": "2026-05-25T17:23:53Z",
+    "n_bundles": 20,
+    "n_total_picks_evaluated": 0,
+    "n_primary": 0,
+    "n_secondary": 0,
+    "n_shadow": 0,
+    "n_skipped": 20,
+    "n_rejected": 0,
+    "nb_alpha": 0.001,
+    "books_traded": [
+      "fanduel",
+      "draftkings"
+    ],
+    "summary": {
+      "run_time": "2026-05-25T17:17:21+00:00",
+      "target_date": "2026-05-25",
+      "n_bundles": 20,
+      "n_starters_scheduled": 20,
+      "n_starters_evaluated": 12,
+      "n_lineup_pending": 8,
+      "n_picks_generated": 0,
+      "n_primary_active": 0,
+      "n_secondary_active": 0,
+      "n_shadow_active": 0,
+      "n_total_merged": 0,
+      "n_skipped_bundles": 20,
+      "skip_breakdown": {
+        "permanent_no_market_data_at_either_book": 10,
+        "permanent_projector_skipped": 2,
+        "transient_lineup_not_posted": 8
+      },
+      "snapshot_file": "1717.json",
+      "dry_run": false
+    }
+  },
+  "primary": [],
+  "secondary": [],
+  "shadow": [],
+  "skipped": [
+    {
+      "pitcher_mlbam_id": 680694,
+      "pitcher_name": "Kyle Bradish",
+      "game_pk": 824838,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 641743,
+      "pitcher_name": "Anthony Kay",
+      "game_pk": 824598,
+      "reason": "projector_skipped: hard_filter: career IP < 50 (estimated 49.5 from season+prior_year PA/4.3)",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 676440,
+      "pitcher_name": "Tanner Bibee",
+      "game_pk": 824437,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 608379,
+      "pitcher_name": "Michael Wacha",
+      "game_pk": 824107,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 805673,
+      "pitcher_name": "Zebby Matthews",
+      "game_pk": 824598,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 701542,
+      "pitcher_name": "Will Warren",
+      "game_pk": 824107,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 663556,
+      "pitcher_name": "Shane McClanahan",
+      "game_pk": 824838,
+      "reason": "projector_skipped: hard_filter: career IP < 50 (estimated 42.3 from season+prior_year PA/4.3)",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 677958,
+      "pitcher_name": "Kumar Rocker",
+      "game_pk": 822899,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 702056,
+      "pitcher_name": "Trey Yesavage",
+      "game_pk": 822812,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 518876,
+      "pitcher_name": "Merrill Kelly",
+      "game_pk": 823219,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 676962,
+      "pitcher_name": "Ben Brown",
+      "game_pk": 823380,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 666157,
+      "pitcher_name": "Nick Lodolo",
+      "game_pk": 823625,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 676083,
+      "pitcher_name": "Janson Junk",
+      "game_pk": 822812,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 837227,
+      "pitcher_name": "Tatsuya Imai",
+      "game_pk": 822899,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 694819,
+      "pitcher_name": "Jacob Misiorowski",
+      "game_pk": 823784,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 641793,
+      "pitcher_name": "Zack Littell",
+      "game_pk": 824437,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    },
+    {
+      "pitcher_mlbam_id": 690997,
+      "pitcher_name": "Nolan McLean",
+      "game_pk": 823625,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 669387,
+      "pitcher_name": "Carmen Mlodzinski",
+      "game_pk": 823380,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 669461,
+      "pitcher_name": "Matthew Liberatore",
+      "game_pk": 823784,
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
+    },
+    {
+      "pitcher_mlbam_id": 694738,
+      "pitcher_name": "Landen Roupp",
+      "game_pk": 823219,
+      "reason": "lineup_not_posted",
+      "is_transient": true,
+      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+    }
+  ],
+  "rejected": []
+}

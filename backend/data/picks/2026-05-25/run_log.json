@@ -1,0 +1,25 @@
+{
+  "runs": [
+    {
+      "run_time": "2026-05-25T17:17:21+00:00",
+      "target_date": "2026-05-25",
+      "n_bundles": 20,
+      "n_starters_scheduled": 20,
+      "n_starters_evaluated": 12,
+      "n_lineup_pending": 8,
+      "n_picks_generated": 0,
+      "n_primary_active": 0,
+      "n_secondary_active": 0,
+      "n_shadow_active": 0,
+      "n_total_merged": 0,
+      "n_skipped_bundles": 20,
+      "skip_breakdown": {
+        "permanent_no_market_data_at_either_book": 10,
+        "permanent_projector_skipped": 2,
+        "transient_lineup_not_posted": 8
+      },
+      "snapshot_file": "1717.json",
+      "dry_run": false
+    }
+  ]
+}
