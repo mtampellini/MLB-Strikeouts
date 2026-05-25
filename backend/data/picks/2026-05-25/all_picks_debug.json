@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated_at": "2026-05-25T17:23:53Z",
+    "generated_at": "2026-05-25T20:06:53Z",
     "n_bundles": 20,
     "n_total_picks_evaluated": 0,
     "n_primary": 0,
@@ -14,12 +14,12 @@
       "draftkings"
     ],
     "summary": {
-      "run_time": "2026-05-25T17:17:21+00:00",
+      "run_time": "2026-05-25T19:59:30+00:00",
       "target_date": "2026-05-25",
       "n_bundles": 20,
       "n_starters_scheduled": 20,
-      "n_starters_evaluated": 12,
-      "n_lineup_pending": 8,
+      "n_starters_evaluated": 18,
+      "n_lineup_pending": 2,
       "n_picks_generated": 0,
       "n_primary_active": 0,
       "n_secondary_active": 0,
@@ -27,11 +27,11 @@
       "n_total_merged": 0,
       "n_skipped_bundles": 20,
       "skip_breakdown": {
-        "permanent_no_market_data_at_either_book": 10,
-        "permanent_projector_skipped": 2,
-        "transient_lineup_not_posted": 8
+        "permanent_no_market_data_at_either_book": 15,
+        "permanent_projector_skipped": 3,
+        "transient_lineup_not_posted": 2
       },
-      "snapshot_file": "1717.json",
+      "snapshot_file": "1959.json",
       "dry_run": false
     }
   },
@@ -57,9 +57,8 @@
       "pitcher_mlbam_id": 676440,
       "pitcher_name": "Tanner Bibee",
       "game_pk": 824437,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 608379,
@@ -101,17 +100,15 @@
       "pitcher_mlbam_id": 702056,
       "pitcher_name": "Trey Yesavage",
       "game_pk": 822812,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 518876,
       "pitcher_name": "Merrill Kelly",
       "game_pk": 823219,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 676962,
@@ -131,9 +128,8 @@
       "pitcher_mlbam_id": 676083,
       "pitcher_name": "Janson Junk",
       "game_pk": 822812,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     },
     {
       "pitcher_mlbam_id": 837227,
@@ -149,14 +145,6 @@
       "game_pk": 823784,
       "reason": "no_market_data_at_either_book",
       "is_transient": false
-    },
-    {
-      "pitcher_mlbam_id": 641793,
-      "pitcher_name": "Zack Littell",
-      "game_pk": 824437,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
     },
     {
       "pitcher_mlbam_id": 690997,
@@ -180,12 +168,18 @@
       "is_transient": false
     },
     {
+      "pitcher_mlbam_id": 656288,
+      "pitcher_name": "Griffin Canning",
+      "game_pk": 823296,
+      "reason": "projector_skipped: hard_filter: season IP < 20 AND prior_year IP < 80 (estimated season=17.4, prior=76.5)",
+      "is_transient": false
+    },
+    {
       "pitcher_mlbam_id": 694738,
       "pitcher_name": "Landen Roupp",
       "game_pk": 823219,
-      "reason": "lineup_not_posted",
-      "is_transient": true,
-      "detail": "Awaiting official lineup posting; will re-evaluate next run."
+      "reason": "no_market_data_at_either_book",
+      "is_transient": false
     }
   ],
   "rejected": []
