@@ -1,12 +1,16 @@
 name: Settle results
 
 on:
-  schedule:
+  # PAUSED 2026-05-26: schedule disabled while a GitHub account suspension is
+  # being resolved. Re-enable by uncommenting the `schedule:` + `- cron:` lines
+  # below once the account is reinstated. workflow_dispatch left active for
+  # manual runs.
+  # schedule:
     # 09:13 UTC ~= 5:13am ET (EDT) / 4:13am ET (EST). West Coast games end ~1am ET,
     # so yesterday's box scores are stable well before this fire.
     # Off-hour minute (:13) to dodge top-of-hour cron contention.
     # Same time as HR-Picks settle — different repo, no contention.
-    - cron: "13 9 * * *"
+    # - cron: "13 9 * * *"
   workflow_dispatch:
 
 permissions:

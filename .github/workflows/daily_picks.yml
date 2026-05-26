@@ -1,7 +1,11 @@
 name: Daily picks
 
 on:
-  schedule:
+  # PAUSED 2026-05-26: schedule disabled while a GitHub account suspension is
+  # being resolved. Re-enable by uncommenting the `schedule:` + `- cron:` lines
+  # below once the account is reinstated. workflow_dispatch left active for
+  # manual runs.
+  # schedule:
     # Hourly fires from 11:13am to 7:13pm ET (15:13 UTC to 23:13 UTC during EDT).
     # Same wide-window pattern as HR-Picks (.github/workflows/daily_picks.yml):
     #   1. Lineup-posting times span ~9 hours per day — afternoon games' lineups
@@ -13,7 +17,7 @@ on:
     #   3. GitHub's scheduled-event scheduler is unreliable — 9 daily fires give
     #      defense in depth.
     # Off-hour minute (:13) to dodge top-of-hour cron contention.
-    - cron: "13 15-23 * * *"
+    # - cron: "13 15-23 * * *"
   workflow_dispatch:
 
 permissions:
